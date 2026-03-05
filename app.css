@@ -1,0 +1,229 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+
+/* Shared styling for the static (GitHub Pages) version */
+
+:root {
+  color-scheme: light;
+  --brand: 15 118 110; /* teal-700 */
+  --brand-2: 245 158 11; /* amber-500 */
+  --surface: 255 255 255;
+  --ink: 15 23 42;
+}
+
+html.dark {
+  color-scheme: dark;
+  --surface: 2 6 23;
+  --ink: 241 245 249;
+}
+
+body {
+  font-family: "Manrope", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(860px circle at 10% 12%, rgba(var(--brand), 0.12), transparent 44%),
+    radial-gradient(760px circle at 84% 16%, rgba(var(--brand-2), 0.1), transparent 42%),
+    linear-gradient(180deg, rgb(244 249 248), rgb(255 255 255));
+}
+
+.app-bg::before,
+.app-bg::after {
+  content: "";
+  position: absolute;
+  inset: -16%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  will-change: transform;
+}
+
+.app-bg::before {
+  background-image: url("https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=2200&q=80");
+  background-position: center 48%;
+  opacity: 0.26;
+  mix-blend-mode: multiply;
+  animation: drift-campus-1 52s ease-in-out infinite alternate;
+}
+
+.app-bg::after {
+  inset: 0;
+  background-image:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.64), rgba(255, 255, 255, 0.86)),
+    radial-gradient(720px circle at 14% 16%, rgba(15, 118, 110, 0.2), transparent 56%),
+    radial-gradient(640px circle at 82% 14%, rgba(245, 158, 11, 0.14), transparent 58%);
+  opacity: 1;
+  mix-blend-mode: normal;
+  transform: none;
+  animation: drift-campus-2 68s ease-in-out infinite alternate;
+}
+
+html.dark .app-bg {
+  background:
+    radial-gradient(900px circle at 12% 10%, rgba(var(--brand), 0.2), transparent 44%),
+    radial-gradient(800px circle at 88% 12%, rgba(var(--brand-2), 0.16), transparent 43%),
+    linear-gradient(180deg, rgb(2 6 23), rgb(7 14 27));
+}
+
+html.dark .app-bg::before {
+  opacity: 0.22;
+  mix-blend-mode: soft-light;
+}
+
+html.dark .app-bg::after {
+  background-image:
+    linear-gradient(180deg, rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.88)),
+    radial-gradient(760px circle at 14% 16%, rgba(20, 184, 166, 0.18), transparent 56%),
+    radial-gradient(640px circle at 82% 14%, rgba(245, 158, 11, 0.12), transparent 58%);
+  opacity: 1;
+  mix-blend-mode: normal;
+}
+
+.glass {
+  background: rgba(var(--surface), 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.44);
+  box-shadow: 0 18px 42px -32px rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(12px);
+}
+
+html.dark .glass {
+  background: rgba(var(--surface), 0.74);
+  border-color: rgba(51, 65, 85, 0.66);
+  box-shadow: 0 22px 56px -36px rgba(2, 6, 23, 0.9);
+}
+
+.hero-shell {
+  position: relative;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(rgba(var(--surface), 0.93), rgba(var(--surface), 0.9)) padding-box,
+    linear-gradient(130deg, rgba(15, 118, 110, 0.62), rgba(99, 102, 241, 0.55), rgba(245, 158, 11, 0.56)) border-box;
+  box-shadow:
+    0 26px 56px -42px rgba(15, 23, 42, 0.52),
+    0 16px 36px -30px rgba(15, 118, 110, 0.38);
+}
+
+.hero-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(420px circle at 8% 10%, rgba(15, 118, 110, 0.12), transparent 58%);
+}
+
+html.dark .hero-shell {
+  background:
+    linear-gradient(rgba(2, 6, 23, 0.88), rgba(2, 6, 23, 0.84)) padding-box,
+    linear-gradient(130deg, rgba(45, 212, 191, 0.7), rgba(129, 140, 248, 0.66), rgba(251, 191, 36, 0.62)) border-box;
+  box-shadow:
+    0 28px 64px -40px rgba(2, 6, 23, 0.9),
+    0 20px 40px -34px rgba(20, 184, 166, 0.42);
+}
+
+html.dark .hero-shell::after {
+  background: radial-gradient(420px circle at 8% 10%, rgba(20, 184, 166, 0.2), transparent 58%);
+}
+
+.hero-chip {
+  border: 1px solid rgba(100, 116, 139, 0.35);
+  background: rgba(var(--surface), 0.66);
+  color: rgb(51 65 85);
+  border-radius: 9999px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+html.dark .hero-chip {
+  border-color: rgba(71, 85, 105, 0.72);
+  background: rgba(15, 23, 42, 0.58);
+  color: rgb(203 213 225);
+}
+
+.card-hover {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 44px -30px rgba(15, 23, 42, 0.42);
+}
+
+.service-card {
+  position: relative;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(rgba(var(--surface), 0.95), rgba(var(--surface), 0.92)) padding-box,
+    linear-gradient(138deg, var(--accent-1, #0f766e), var(--accent-2, #f59e0b)) border-box;
+  box-shadow:
+    0 20px 42px -34px rgba(15, 23, 42, 0.45),
+    0 14px 30px -28px rgba(var(--accent-rgb, 15, 118, 110), 0.42);
+}
+
+html.dark .service-card {
+  background:
+    linear-gradient(rgba(2, 6, 23, 0.86), rgba(2, 6, 23, 0.82)) padding-box,
+    linear-gradient(138deg, var(--accent-1, #0f766e), var(--accent-2, #f59e0b)) border-box;
+  box-shadow:
+    0 24px 50px -36px rgba(2, 6, 23, 0.92),
+    0 16px 36px -30px rgba(var(--accent-rgb, 15, 118, 110), 0.4);
+}
+
+.service-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(340px circle at 0% 0%, rgba(var(--accent-rgb, 15, 118, 110), 0.1), transparent 62%);
+}
+
+.service-avatar {
+  box-shadow:
+    0 0 0 2px rgba(var(--accent-rgb, 15, 118, 110), 0.32),
+    0 10px 24px -16px rgba(var(--accent-rgb, 15, 118, 110), 0.56);
+}
+
+.service-pill {
+  border: 1px solid rgba(var(--accent-rgb, 15, 118, 110), 0.36);
+  background: rgba(var(--accent-rgb, 15, 118, 110), 0.14);
+  color: rgb(var(--accent-rgb, 15, 118, 110));
+}
+
+html.dark .service-pill {
+  border-color: rgba(var(--accent-rgb, 15, 118, 110), 0.48);
+  background: rgba(var(--accent-rgb, 15, 118, 110), 0.18);
+  color: rgb(226 232 240);
+}
+
+@keyframes drift-campus-1 {
+  0% {
+    transform: translate3d(-2%, -1.5%, 0) scale(1.02);
+  }
+  100% {
+    transform: translate3d(3.5%, 2.2%, 0) scale(1.14);
+  }
+}
+
+@keyframes drift-campus-2 {
+  0% {
+    transform: translate3d(0.8%, 0.8%, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(-0.8%, -0.8%, 0) scale(1.02);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-bg::before,
+  .app-bg::after {
+    animation: none;
+  }
+}
