@@ -18,6 +18,7 @@ html.dark {
 
 body {
   font-family: "Manrope", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  padding-bottom: 7.5rem;
 }
 
 .app-bg {
@@ -203,6 +204,24 @@ html.dark .service-pill {
   color: rgb(226 232 240);
 }
 
+.floating-footer-shell {
+  pointer-events: none;
+}
+
+.floating-footer-card {
+  pointer-events: auto;
+  background: rgba(var(--surface), 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.38);
+  box-shadow: 0 20px 46px -34px rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(16px);
+}
+
+html.dark .floating-footer-card {
+  background: rgba(var(--surface), 0.78);
+  border-color: rgba(51, 65, 85, 0.72);
+  box-shadow: 0 24px 54px -36px rgba(2, 6, 23, 0.92);
+}
+
 @keyframes drift-campus-1 {
   0% {
     transform: translate3d(-2%, -1.5%, 0) scale(1.02);
@@ -225,5 +244,11 @@ html.dark .service-pill {
   .app-bg::before,
   .app-bg::after {
     animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    padding-bottom: 6.5rem;
   }
 }

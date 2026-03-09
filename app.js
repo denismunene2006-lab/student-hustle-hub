@@ -1210,37 +1210,39 @@
 
     const footer = document.createElement('footer');
     footer.id = 'app-footer';
-    footer.className = 'mt-12 pb-8';
+    footer.className = 'floating-footer-shell fixed inset-x-0 bottom-0 z-40 px-3 pb-3 sm:px-4 sm:pb-4';
 
-    const year = new Date().getFullYear();
+    const quickLinks = [
+      `<a href="index.html" class="${linkClass(false, getCurrentPage() === 'index.html')}">Browse</a>`,
+      user ? `<a href="dashboard.html" class="${linkClass(false, getCurrentPage() === 'dashboard.html')}">Dashboard</a>` : `<a href="login.html" class="${linkClass(false, getCurrentPage() === 'login.html')}">Login</a>`,
+      user ? `<a href="create-service.html" class="${linkClass(false, getCurrentPage() === 'create-service.html')}">Post Service</a>` : `<a href="register.html" class="${buttonClass('primary', false)}">Register</a>`,
+      user?.isAdmin ? `<a href="admin.html" class="${linkClass(false, getCurrentPage() === 'admin.html')}">Admin</a>` : '',
+    ].filter(Boolean).join('');
+
     footer.innerHTML = `
       <div class="mx-auto max-w-7xl px-4">
-        <div class="glass rounded-2xl px-5 py-5 sm:px-6">
-          <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div class="flex items-start gap-3">
-              <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white ring-1 ring-primary/30 shadow-sm">
-                <i data-lucide="briefcase" class="h-5 w-5"></i>
+        <div class="floating-footer-card rounded-2xl px-4 py-3 sm:px-5">
+          <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white ring-1 ring-primary/30 shadow-sm">
+                <i data-lucide="briefcase" class="h-4 w-4"></i>
               </span>
-              <div>
-                <p class="text-sm font-semibold text-slate-900 dark:text-white">Student Hustle Hub</p>
-                <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Find and offer trusted student services on campus.</p>
+              <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">Student Hustle Hub</p>
+                <p class="truncate text-xs text-slate-500 dark:text-slate-400">Find trusted student services on campus.</p>
               </div>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-              <a href="index.html" class="${linkClass(false, getCurrentPage() === 'index.html')}">Browse</a>
-              <a href="dashboard.html" class="${linkClass(false, getCurrentPage() === 'dashboard.html')}">Dashboard</a>
-              <a href="create-service.html" class="${linkClass(false, getCurrentPage() === 'create-service.html')}">Post Service</a>
-              ${user?.isAdmin ? `<a href="admin.html" class="${linkClass(false, getCurrentPage() === 'admin.html')}">Admin</a>` : ''}
-              <a href="${SUPPORT_LINK}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600">
+              <div class="hidden items-center gap-2 md:flex">
+                ${quickLinks}
+              </div>
+              <a href="${SUPPORT_LINK}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600">
                 <i data-lucide="message-circle" class="h-4 w-4"></i>
-                Help WhatsApp ${SUPPORT_NUMBER_LOCAL}
+                <span class="sm:hidden">Help</span>
+                <span class="hidden sm:inline">Help WhatsApp ${SUPPORT_NUMBER_LOCAL}</span>
               </a>
             </div>
-          </div>
-
-          <div class="mt-4 border-t border-slate-200/70 pt-3 text-xs text-slate-500 dark:border-slate-700/70 dark:text-slate-400">
-            <p>&copy; ${year} Student Hustle Hub. Built for campus creators.</p>
           </div>
         </div>
       </div>
