@@ -1,87 +1,40 @@
 # Student Hustle Hub
 
-Campus marketplace for student services with:
-- Static frontend (`index.html`, `service.html`, `login.html`, `register.html`, `create-service.html`, `dashboard.html`, `settings.html`)
-- Node + Express + MongoDB backend API (`server.js`, `routes/`, `controllers/`, `models/`)
+Student Hustle Hub is a modern campus marketplace where students can offer services, request help, and build trust through ratings and reviews.
 
-## 1) Run backend locally
+## Highlights
+- Student accounts with editable profiles
+- Buyer/Seller mode switch per user
+- Service posting and service editing
+- Ratings and reviews for each student provider
+- Admin dashboard with usage stats and moderation actions
+- Kenyan currency support (KES) and WhatsApp support button
 
-1. Install packages:
+## Project structure
+- Frontend pages: `index.html`, `service.html`, `login.html`, `register.html`, `create-service.html`, `dashboard.html`, `admin.html`
+- Shared frontend logic: `app.js`, `dashboard.js`, `app.css`
+- Backend API: `server.js`, `routes/`, `controllers/`, `models/`, `middleware/`, `config/`
+
+## Run locally
+1. Install dependencies:
    - `npm install`
-2. Copy env:
+2. Create environment file:
    - `copy .env.example .env`
-3. Update `.env` values:
-   - `MONGO_URI`
-   - `JWT_SECRET`
-   - `CORS_ORIGINS` (comma-separated list of frontend origins)
-4. Start server:
-   - `npm run dev`
-   - or `npm start`
+3. Start backend:
+   - `npm run dev` (or `npm start`)
+4. Open `index.html` with a local static server (for example VS Code Live Server).
 
-Health check:
-- `GET /api/health`
+## Deploy
+- Frontend: GitHub Pages / Netlify / Vercel (static hosting)
+- Backend: Render / Railway / Fly.io / VPS
+- Database: MongoDB Atlas or self-hosted MongoDB
 
-## 2) Frontend modes
+## Security checklist
+- Keep `.env` private and never commit secrets.
+- Use a strong `JWT_SECRET`.
+- Restrict `CORS_ORIGINS` to your real frontend domain.
+- Use HTTPS for both frontend and backend in production.
 
-The static frontend supports two modes:
-
-- **API mode (recommended)**: uses backend auth + services API.
-- **Demo mode**: localStorage fallback for static-only hosting.
-
-API mode is enabled only after you set an API URL.
-
-You can configure API URL from UI:
-- Open `settings.html`
-- Save your backend URL (for example `http://localhost:5000/api` or `https://your-api-domain/api`)
-
-To point the frontend to another backend URL, open browser console and run:
-- `localStorage.setItem('shhub_api_base_url', 'https://your-api-domain/api')`
-
-Clear it with:
-- `localStorage.removeItem('shhub_api_base_url')`
-
-## 3) API endpoints
-
-### Auth
-- `POST /api/auth/register`
-  - body: `{ name, email, password, university, course }`
-- `POST /api/auth/login`
-  - body: `{ email, password }`
-- `GET /api/auth/me` (Bearer token)
-- `PUT /api/auth/me` (Bearer token)
-  - body (any subset): `{ name, email, university, course, image, whatsappNumber, bio, marketMode }`
-
-### Services
-- `GET /api/services?keyword=&category=&listingType=`
-- `POST /api/services` (Bearer token)
-  - body: `{ title, description, category, listingType, price, contactInfo }`
-- `GET /api/services/my-services` (Bearer token)
-- `GET /api/services/:id`
-- `PUT /api/services/:id` (Bearer token; owner only)
-- `DELETE /api/services/:id` (Bearer token; owner only)
-
-## 4) Data model updates included
-
-- `User` now supports:
-  - `whatsappNumber`
-  - `bio`
-  - `marketMode` (`buyer` | `seller`)
-- `Service` now supports:
-  - `listingType` (`buyer` | `seller`)
-  - `price` treated as KES amount (numeric)
-
-## 5) Deploy
-
-### Static frontend
-You can host HTML/CSS/JS on:
-- GitHub Pages
-- Netlify
-- Vercel static
-
-### Backend API
-Deploy Node + MongoDB on:
-- Render / Railway / Fly.io / VPS
-
-After backend deploy:
-1. Set `CORS_ORIGINS` to your frontend domain.
-2. Set frontend API base URL (`shhub_api_base_url`) to deployed API URL.
+## Notes
+- Demo mode is available for static hosting and local browser testing.
+- Admin and connection settings are intentionally restricted in the UI for safer public deployment.

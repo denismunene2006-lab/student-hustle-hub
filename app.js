@@ -2,9 +2,18 @@
   const USER_KEY = 'user';
   const THEME_KEY = 'theme';
   const SERVICES_KEY = 'shhub_services';
+  const USERS_INDEX_KEY = 'shhub_users_index';
+  const REVIEWS_KEY = 'shhub_reviews';
+  const HIDDEN_DEMO_SERVICES_KEY = 'shhub_hidden_demo_services';
+  const HIDDEN_DEMO_REVIEWS_KEY = 'shhub_hidden_demo_reviews';
   const API_BASE_KEY = 'shhub_api_base_url';
+  const API_REQUEST_TIMEOUT_MS = 12000;
+  const ADMIN_EMAILS = [];
 
   const normalizeUrl = (value) => String(value ?? '').trim().replace(/\/+$/, '');
+  const normalizeEmail = (value) => String(value ?? '').trim().toLowerCase();
+  const normalizeListingType = (value) => (value === 'buyer' ? 'buyer' : 'seller');
+  const isAdminEmail = (email) => ADMIN_EMAILS.includes(normalizeEmail(email));
 
   const getApiBaseUrl = () => {
     const metaValue = document.querySelector('meta[name="api-base-url"]')?.content;
@@ -199,6 +208,109 @@
     },
   ];
 
+  const DEMO_REVIEWS = [
+    {
+      _id: 'demo-review-1',
+      studentId: 'demo-user-1',
+      serviceId: 'demo-1',
+      reviewerUserId: 'demo-reviewer-1',
+      reviewerName: 'Kelvin Ouma',
+      rating: 5,
+      comment: 'Very clear maths explanations and good revision materials.',
+      createdAt: '2026-03-04T09:10:00.000Z',
+    },
+    {
+      _id: 'demo-review-2',
+      studentId: 'demo-user-2',
+      serviceId: 'demo-2',
+      reviewerUserId: 'demo-reviewer-2',
+      reviewerName: 'Faith Muli',
+      rating: 4,
+      comment: 'Great logo ideas and fast delivery.',
+      createdAt: '2026-03-04T11:00:00.000Z',
+    },
+    {
+      _id: 'demo-review-3',
+      studentId: 'demo-user-3',
+      serviceId: 'demo-3',
+      reviewerUserId: 'demo-reviewer-3',
+      reviewerName: 'Ian Kibet',
+      rating: 5,
+      comment: 'Solved my automation task exactly as requested.',
+      createdAt: '2026-03-05T08:40:00.000Z',
+    },
+    {
+      _id: 'demo-review-4',
+      studentId: 'demo-user-4',
+      serviceId: 'demo-4',
+      reviewerUserId: 'demo-reviewer-4',
+      reviewerName: 'Naomi Naliaka',
+      rating: 4,
+      comment: 'Good proofreading and useful structure feedback.',
+      createdAt: '2026-03-05T09:15:00.000Z',
+    },
+    {
+      _id: 'demo-review-5',
+      studentId: 'demo-user-5',
+      serviceId: 'demo-5',
+      reviewerUserId: 'demo-reviewer-5',
+      reviewerName: 'Sharon Wambui',
+      rating: 5,
+      comment: 'CV rewrite helped me get shortlisted for internship interviews.',
+      createdAt: '2026-03-05T10:00:00.000Z',
+    },
+    {
+      _id: 'demo-review-6',
+      studentId: 'demo-user-8',
+      serviceId: 'demo-8',
+      reviewerUserId: 'demo-reviewer-6',
+      reviewerName: 'Yusuf Abdalla',
+      rating: 4,
+      comment: 'Clean SPSS output and a clear final report.',
+      createdAt: '2026-03-05T12:40:00.000Z',
+    },
+    {
+      _id: 'demo-review-7',
+      studentId: 'demo-user-10',
+      serviceId: 'demo-10',
+      reviewerUserId: 'demo-reviewer-7',
+      reviewerName: 'Brenda Akinyi',
+      rating: 5,
+      comment: 'Modern UI and smooth communication throughout.',
+      createdAt: '2026-03-05T13:45:00.000Z',
+    },
+    {
+      _id: 'demo-review-8',
+      studentId: 'demo-user-1',
+      serviceId: 'demo-1',
+      reviewerUserId: 'demo-reviewer-8',
+      reviewerName: 'Brian Maina',
+      rating: 4,
+      comment: 'Helpful tutor and well organized sessions.',
+      createdAt: '2026-03-06T07:50:00.000Z',
+    },
+    {
+      _id: 'demo-review-9',
+      studentId: 'demo-user-2',
+      serviceId: 'demo-2',
+      reviewerUserId: 'demo-reviewer-9',
+      reviewerName: 'Mary Wairimu',
+      rating: 5,
+      comment: 'Poster design was excellent and delivered on time.',
+      createdAt: '2026-03-06T08:05:00.000Z',
+    },
+    {
+      _id: 'demo-review-10',
+      studentId: 'demo-user-3',
+      serviceId: 'demo-3',
+      reviewerUserId: 'demo-reviewer-10',
+      reviewerName: 'Daniel Otieno',
+      rating: 4,
+      comment: 'Good coding style and explanations were easy to follow.',
+      createdAt: '2026-03-06T08:20:00.000Z',
+    },
+  ];
+
   const safeJsonParse = (value) => {
     if (!value) return null;
     try {
@@ -208,10 +320,96 @@
     }
   };
 
-  const getUser = () => safeJsonParse(localStorage.getItem(USER_KEY));
+  const getStoredUsersIndex = () => {
+    const users = safeJsonParse(localStorage.getItem(USERS_INDEX_KEY));
+    return Array.isArray(users) ? users : [];
+  };
+
+  const setStoredUsersIndex = (users) => {
+    localStorage.setItem(USERS_INDEX_KEY, JSON.stringify(users));
+  };
+
+  const getStoredReviews = () => {
+    const reviews = safeJsonParse(localStorage.getItem(REVIEWS_KEY));
+    return Array.isArray(reviews) ? reviews : [];
+  };
+
+  const setStoredReviews = (reviews) => {
+    localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
+  };
+
+  const getHiddenDemoServiceIds = () => {
+    const ids = safeJsonParse(localStorage.getItem(HIDDEN_DEMO_SERVICES_KEY));
+    return Array.isArray(ids) ? ids : [];
+  };
+
+  const setHiddenDemoServiceIds = (ids) => {
+    localStorage.setItem(HIDDEN_DEMO_SERVICES_KEY, JSON.stringify(ids));
+  };
+
+  const getHiddenDemoReviewIds = () => {
+    const ids = safeJsonParse(localStorage.getItem(HIDDEN_DEMO_REVIEWS_KEY));
+    return Array.isArray(ids) ? ids : [];
+  };
+
+  const setHiddenDemoReviewIds = (ids) => {
+    localStorage.setItem(HIDDEN_DEMO_REVIEWS_KEY, JSON.stringify(ids));
+  };
+
+  const normalizeUserPayload = (user, existing = {}) => {
+    const email = normalizeEmail(user?.email ?? existing?.email ?? '');
+    return {
+      ...existing,
+      ...(user ?? {}),
+      _id: String(user?._id ?? existing?._id ?? `local-user-${Date.now()}`),
+      name: String(user?.name ?? existing?.name ?? 'Student User').trim(),
+      email,
+      university: String(user?.university ?? existing?.university ?? 'Campus University').trim(),
+      course: String(user?.course ?? existing?.course ?? 'N/A').trim(),
+      image: String(user?.image ?? existing?.image ?? '').trim(),
+      whatsappNumber: String(user?.whatsappNumber ?? existing?.whatsappNumber ?? '').trim(),
+      bio: String(user?.bio ?? existing?.bio ?? '').trim(),
+      marketMode: normalizeListingType(user?.marketMode ?? existing?.marketMode),
+      isAdmin: Boolean(user?.isAdmin ?? existing?.isAdmin ?? isAdminEmail(email)),
+      token: String(user?.token ?? existing?.token ?? '').trim(),
+    };
+  };
+
+  const getUser = () => {
+    const parsed = safeJsonParse(localStorage.getItem(USER_KEY));
+    if (!parsed) return null;
+    return normalizeUserPayload(parsed);
+  };
+
+  const upsertUsersIndex = (user) => {
+    const users = getStoredUsersIndex();
+    const email = normalizeEmail(user?.email);
+    const idxByEmail = email ? users.findIndex((item) => normalizeEmail(item?.email) === email) : -1;
+    const idxById = idxByEmail >= 0 ? idxByEmail : users.findIndex((item) => item?._id === user?._id);
+    const existing = idxById >= 0 ? users[idxById] : null;
+    const isFirstUser = users.length === 0 && idxById < 0;
+    const normalizedUser = normalizeUserPayload(user, existing ?? {});
+
+    const now = new Date().toISOString();
+    const nextUser = {
+      ...normalizedUser,
+      isAdmin: Boolean(normalizedUser.isAdmin || isFirstUser),
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+      lastSeenAt: now,
+    };
+
+    if (idxById >= 0) users[idxById] = nextUser;
+    else users.unshift(nextUser);
+
+    setStoredUsersIndex(users);
+    return nextUser;
+  };
 
   const setUser = (user) => {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    const mergedUser = upsertUsersIndex(user ?? {});
+    localStorage.setItem(USER_KEY, JSON.stringify(mergedUser));
+    return mergedUser;
   };
 
   const clearUser = () => {
@@ -259,22 +457,33 @@
       if (token) headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${baseUrl}${path}`, {
-      method,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS) : null;
 
-    const payload = await parseApiResponse(response);
-    if (!response.ok) {
-      const fallback = `Request failed (${response.status})`;
-      throw new Error(getApiErrorMessage(payload, fallback));
+    try {
+      const response = await fetch(`${baseUrl}${path}`, {
+        method,
+        headers,
+        body: body === undefined ? undefined : JSON.stringify(body),
+        signal: controller?.signal,
+      });
+
+      const payload = await parseApiResponse(response);
+      if (!response.ok) {
+        const fallback = `Request failed (${response.status})`;
+        throw new Error(getApiErrorMessage(payload, fallback));
+      }
+
+      return payload;
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        throw new Error(`Request timeout after ${Math.round(API_REQUEST_TIMEOUT_MS / 1000)} seconds`);
+      }
+      throw error;
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
     }
-
-    return payload;
   };
-
-  const normalizeListingType = (value) => (value === 'buyer' ? 'buyer' : 'seller');
 
   const formatKES = (value) => {
     const amount = Number(value ?? 0);
@@ -283,7 +492,9 @@
   };
 
   const getAllServices = () => {
-    const merged = [...getStoredServices(), ...DEMO_SERVICES];
+    const hiddenDemoIds = new Set(getHiddenDemoServiceIds());
+    const visibleDemoServices = DEMO_SERVICES.filter((service) => !hiddenDemoIds.has(service._id));
+    const merged = [...getStoredServices(), ...visibleDemoServices];
     return merged.sort((a, b) => {
       const aTime = new Date(a.createdAt ?? 0).getTime();
       const bTime = new Date(b.createdAt ?? 0).getTime();
@@ -293,7 +504,9 @@
 
   const getServiceById = (id) => {
     if (!id) return null;
-    return getStoredServices().find((s) => s._id === id) ?? DEMO_SERVICES.find((s) => s._id === id) ?? null;
+    const hiddenDemoIds = new Set(getHiddenDemoServiceIds());
+    const demo = hiddenDemoIds.has(id) ? null : DEMO_SERVICES.find((s) => s._id === id) ?? null;
+    return getStoredServices().find((s) => s._id === id) ?? demo;
   };
 
   const createService = (data) => {
@@ -435,6 +648,223 @@
     return nextUser;
   };
 
+  const getAllReviews = () => {
+    const hiddenDemoReviewIds = new Set(getHiddenDemoReviewIds());
+    const visibleDemoReviews = DEMO_REVIEWS.filter((review) => !hiddenDemoReviewIds.has(review._id));
+    const merged = [...getStoredReviews(), ...visibleDemoReviews];
+    return merged.sort((a, b) => {
+      const aTime = new Date(a.createdAt ?? 0).getTime();
+      const bTime = new Date(b.createdAt ?? 0).getTime();
+      return bTime - aTime;
+    });
+  };
+
+  const getReviewsForUser = (studentId) => {
+    const targetId = String(studentId ?? '').trim();
+    if (!targetId) return [];
+    return getAllReviews().filter((review) => String(review?.studentId ?? '') === targetId);
+  };
+
+  const getRatingSummaryForUser = (studentId) => {
+    const reviews = getReviewsForUser(studentId);
+    const count = reviews.length;
+    if (count === 0) return { average: 0, count: 0 };
+    const total = reviews.reduce((sum, review) => sum + Number(review?.rating ?? 0), 0);
+    const average = total / count;
+    return {
+      average: Number.isFinite(average) ? average : 0,
+      count,
+    };
+  };
+
+  const addReview = (payload) => {
+    const reviewer = getUser();
+    if (!reviewer) throw new Error('Please login to leave a review');
+
+    const studentId = String(payload?.studentId ?? '').trim();
+    if (!studentId) throw new Error('Student ID is required');
+    if (reviewer._id === studentId) throw new Error('You cannot review your own profile');
+
+    const rating = Number(payload?.rating ?? 0);
+    if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+      throw new Error('Rating must be between 1 and 5');
+    }
+
+    const comment = String(payload?.comment ?? '').trim();
+    if (comment.length < 6) throw new Error('Please write a slightly longer review');
+
+    const serviceId = String(payload?.serviceId ?? '').trim();
+    const now = new Date().toISOString();
+    const storedReviews = getStoredReviews();
+
+    const existingIndex = storedReviews.findIndex((review) =>
+      review?.serviceId === serviceId
+      && review?.studentId === studentId
+      && review?.reviewerUserId === reviewer._id);
+
+    if (existingIndex >= 0) {
+      const updated = {
+        ...storedReviews[existingIndex],
+        rating,
+        comment,
+        updatedAt: now,
+      };
+      storedReviews[existingIndex] = updated;
+      setStoredReviews(storedReviews);
+      return updated;
+    }
+
+    const newReview = {
+      _id: globalThis.crypto?.randomUUID?.() ?? `local-review-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      studentId,
+      serviceId,
+      reviewerUserId: reviewer._id,
+      reviewerName: reviewer.name ?? 'Anonymous student',
+      reviewerEmail: reviewer.email ?? '',
+      rating,
+      comment,
+      createdAt: now,
+    };
+    storedReviews.unshift(newReview);
+    setStoredReviews(storedReviews);
+    return newReview;
+  };
+
+  const deleteReview = (reviewId) => {
+    const user = getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const targetId = String(reviewId ?? '').trim();
+    if (!targetId) throw new Error('Review ID is required');
+
+    const storedReviews = getStoredReviews();
+    const index = storedReviews.findIndex((review) => review?._id === targetId);
+    if (index >= 0) {
+      const review = storedReviews[index];
+      if (review?.reviewerUserId !== user._id && !user.isAdmin) {
+        throw new Error('Not authorized to delete this review');
+      }
+      storedReviews.splice(index, 1);
+      setStoredReviews(storedReviews);
+      return true;
+    }
+
+    const isDemoReview = DEMO_REVIEWS.some((review) => review._id === targetId);
+    if (!isDemoReview) return false;
+    if (!user.isAdmin) throw new Error('Only admins can hide demo reviews');
+
+    const hiddenIds = getHiddenDemoReviewIds();
+    if (!hiddenIds.includes(targetId)) {
+      hiddenIds.push(targetId);
+      setHiddenDemoReviewIds(hiddenIds);
+    }
+    return true;
+  };
+
+  const getAdminUsersLocal = () => {
+    const users = getStoredUsersIndex();
+    return users.sort((a, b) => new Date(b.lastSeenAt ?? 0).getTime() - new Date(a.lastSeenAt ?? 0).getTime());
+  };
+
+  const getAdminServicesLocal = () => getAllServices();
+  const getAdminReviewsLocal = () => getAllReviews();
+
+  const getAdminStatsLocal = () => {
+    const users = getAdminUsersLocal();
+    const services = getAdminServicesLocal();
+    const reviews = getAdminReviewsLocal();
+    const now = Date.now();
+    const activeUsers = users.filter((user) => (now - new Date(user.lastSeenAt ?? 0).getTime()) <= (1000 * 60 * 60 * 24 * 7)).length;
+    const averageRating = reviews.length
+      ? reviews.reduce((sum, review) => sum + Number(review?.rating ?? 0), 0) / reviews.length
+      : 0;
+
+    return {
+      usersCount: users.length,
+      activeUsers,
+      servicesCount: services.length,
+      reviewsCount: reviews.length,
+      buyersCount: services.filter((service) => service?.listingType === 'buyer').length,
+      sellersCount: services.filter((service) => service?.listingType !== 'buyer').length,
+      averageRating: Number.isFinite(averageRating) ? averageRating : 0,
+    };
+  };
+
+  const setUserAdminLocal = (userId, enabled) => {
+    const users = getStoredUsersIndex();
+    const index = users.findIndex((item) => item?._id === userId);
+    if (index === -1) throw new Error('User not found');
+
+    users[index] = {
+      ...users[index],
+      isAdmin: Boolean(enabled),
+      updatedAt: new Date().toISOString(),
+    };
+    setStoredUsersIndex(users);
+
+    const current = getUser();
+    if (current?._id === userId) {
+      setUser({
+        ...current,
+        isAdmin: Boolean(enabled),
+      });
+    }
+    return users[index];
+  };
+
+  const adminDeleteServiceLocal = (serviceId) => {
+    const user = getUser();
+    if (!user?.isAdmin) throw new Error('Admin access required');
+
+    const targetId = String(serviceId ?? '').trim();
+    if (!targetId) throw new Error('Service ID is required');
+
+    const storedServices = getStoredServices();
+    const storedIndex = storedServices.findIndex((service) => service?._id === targetId);
+    if (storedIndex >= 0) {
+      storedServices.splice(storedIndex, 1);
+      setStoredServices(storedServices);
+    } else {
+      const isDemo = DEMO_SERVICES.some((service) => service._id === targetId);
+      if (!isDemo) return false;
+      const hiddenIds = getHiddenDemoServiceIds();
+      if (!hiddenIds.includes(targetId)) {
+        hiddenIds.push(targetId);
+        setHiddenDemoServiceIds(hiddenIds);
+      }
+    }
+
+    const storedReviews = getStoredReviews().filter((review) => review?.serviceId !== targetId);
+    setStoredReviews(storedReviews);
+
+    const demoReviewsToHide = DEMO_REVIEWS.filter((review) => review?.serviceId === targetId).map((review) => review._id);
+    if (demoReviewsToHide.length) {
+      const hiddenReviewIds = getHiddenDemoReviewIds();
+      const mergedHiddenIds = Array.from(new Set([...hiddenReviewIds, ...demoReviewsToHide]));
+      setHiddenDemoReviewIds(mergedHiddenIds);
+    }
+
+    return true;
+  };
+
+  const adminDeleteReviewLocal = (reviewId) => {
+    const user = getUser();
+    if (!user?.isAdmin) throw new Error('Admin access required');
+    return deleteReview(reviewId);
+  };
+
+  const resetLocalDemoData = () => {
+    const currentUser = getUser();
+    localStorage.removeItem(SERVICES_KEY);
+    localStorage.removeItem(REVIEWS_KEY);
+    localStorage.removeItem(USERS_INDEX_KEY);
+    localStorage.removeItem(HIDDEN_DEMO_SERVICES_KEY);
+    localStorage.removeItem(HIDDEN_DEMO_REVIEWS_KEY);
+
+    if (currentUser) setUser(currentUser);
+    return true;
+  };
+
   const mergeAndSetUser = (payload) => {
     const existing = getUser() ?? {};
     const nextUser = {
@@ -518,6 +948,55 @@
   const apiDeleteService = async (id) => {
     if (!id) throw new Error('Service ID is required');
     await apiRequest(`/services/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+    return true;
+  };
+
+  const apiGetReviewsForUser = async (studentId) => {
+    if (!studentId) throw new Error('Student ID is required');
+    return apiRequest(`/reviews/user/${encodeURIComponent(studentId)}`, { auth: false });
+  };
+
+  const apiCreateReview = async (payload) => {
+    return apiRequest('/reviews', {
+      method: 'POST',
+      body: payload,
+    });
+  };
+
+  const apiDeleteReview = async (reviewId) => {
+    if (!reviewId) throw new Error('Review ID is required');
+    await apiRequest(`/reviews/${encodeURIComponent(reviewId)}`, {
+      method: 'DELETE',
+    });
+    return true;
+  };
+
+  const apiGetAdminStats = async () => apiRequest('/admin/stats');
+  const apiGetAdminUsers = async () => apiRequest('/admin/users');
+  const apiGetAdminServices = async () => apiRequest('/admin/services');
+  const apiGetAdminReviews = async () => apiRequest('/admin/reviews');
+
+  const apiSetUserAdmin = async (userId, enabled) => {
+    if (!userId) throw new Error('User ID is required');
+    return apiRequest(`/admin/users/${encodeURIComponent(userId)}/role`, {
+      method: 'PUT',
+      body: { isAdmin: Boolean(enabled) },
+    });
+  };
+
+  const apiAdminDeleteService = async (serviceId) => {
+    if (!serviceId) throw new Error('Service ID is required');
+    await apiRequest(`/admin/services/${encodeURIComponent(serviceId)}`, {
+      method: 'DELETE',
+    });
+    return true;
+  };
+
+  const apiAdminDeleteReview = async (reviewId) => {
+    if (!reviewId) throw new Error('Review ID is required');
+    await apiRequest(`/admin/reviews/${encodeURIComponent(reviewId)}`, {
       method: 'DELETE',
     });
     return true;
@@ -614,22 +1093,22 @@
 
   const buildLinks = (user, isMobile = false) => {
     const browse = navLink('index.html', 'search', 'Browse', isMobile);
+    const adminLink = user?.isAdmin ? navLink('admin.html', 'shield-check', 'Admin', isMobile) : '';
 
     if (user) {
       return [
         browse,
         navLink('create-service.html', 'plus-circle', 'Post Service', isMobile),
         navLink('dashboard.html', 'layout-dashboard', 'Dashboard', isMobile),
-        navLink('settings.html', 'settings', 'Settings', isMobile),
+        adminLink,
         supportLink(isMobile),
         `<button type="button" data-action="logout" class="${buttonClass('danger', isMobile)}"><i data-lucide="log-out" class="h-4 w-4"></i>Logout</button>`,
-      ].join('');
+      ].filter(Boolean).join('');
     }
 
     return [
       browse,
       navLink('login.html', 'log-in', 'Login', isMobile),
-      navLink('settings.html', 'settings', 'Settings', isMobile),
       supportLink(isMobile),
       `<a href="register.html" class="${buttonClass('primary', isMobile)}">${isMobile ? '<i data-lucide="user-plus" class="h-4 w-4"></i>' : ''}Register</a>`,
     ].join('');
@@ -701,6 +1180,7 @@
   const renderFooter = () => {
     const existingFooter = document.getElementById('app-footer');
     existingFooter?.remove();
+    const user = getUser();
 
     const footer = document.createElement('footer');
     footer.id = 'app-footer';
@@ -725,7 +1205,7 @@
               <a href="index.html" class="${linkClass(false, getCurrentPage() === 'index.html')}">Browse</a>
               <a href="dashboard.html" class="${linkClass(false, getCurrentPage() === 'dashboard.html')}">Dashboard</a>
               <a href="create-service.html" class="${linkClass(false, getCurrentPage() === 'create-service.html')}">Post Service</a>
-              <a href="settings.html" class="${linkClass(false, getCurrentPage() === 'settings.html')}">Settings</a>
+              ${user?.isAdmin ? `<a href="admin.html" class="${linkClass(false, getCurrentPage() === 'admin.html')}">Admin</a>` : ''}
               <a href="${SUPPORT_LINK}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600">
                 <i data-lucide="message-circle" class="h-4 w-4"></i>
                 Help WhatsApp ${SUPPORT_NUMBER_LOCAL}
@@ -750,6 +1230,8 @@
 
   const init = () => {
     if (document.body?.dataset?.requiresAuth === 'true') requireAuth();
+    const activeUser = getUser();
+    if (activeUser) setUser(activeUser);
     renderNavbar();
     renderFooter();
     refreshIcons();
@@ -770,6 +1252,19 @@
     deleteService,
     updateService,
     updateProfile,
+    getAllReviews,
+    getReviewsForUser,
+    getRatingSummaryForUser,
+    addReview,
+    deleteReview,
+    getAdminStatsLocal,
+    getAdminUsersLocal,
+    getAdminServicesLocal,
+    getAdminReviewsLocal,
+    setUserAdminLocal,
+    adminDeleteServiceLocal,
+    adminDeleteReviewLocal,
+    resetLocalDemoData,
     formatKES,
     getApiBaseUrl,
     setApiBaseUrl,
@@ -784,6 +1279,16 @@
     apiCreateService,
     apiUpdateService,
     apiDeleteService,
+    apiGetReviewsForUser,
+    apiCreateReview,
+    apiDeleteReview,
+    apiGetAdminStats,
+    apiGetAdminUsers,
+    apiGetAdminServices,
+    apiGetAdminReviews,
+    apiSetUserAdmin,
+    apiAdminDeleteService,
+    apiAdminDeleteReview,
   };
 
   document.addEventListener('DOMContentLoaded', init);

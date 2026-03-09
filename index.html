@@ -163,6 +163,11 @@
             const providerUniversity = provider.university ?? 'Campus';
             const providerImage = provider.image ?? `https://i.pravatar.cc/150?u=${encodeURIComponent(provider.email ?? providerName)}`;
             const contactInfo = String(service?.contactInfo ?? '').trim();
+            const providerId = String(provider._id ?? '');
+            const ratingSummary = window.SHHub?.getRatingSummaryForUser?.(providerId) ?? { average: 0, count: 0 };
+            const ratingText = ratingSummary.count > 0
+                ? `★ ${ratingSummary.average.toFixed(1)} (${ratingSummary.count})`
+                : 'No reviews yet';
             const modeLabel = listingType === 'buyer' ? 'Buyer Request' : 'Seller Offer';
             const modeClasses = listingType === 'buyer'
                 ? 'bg-amber-500/15 text-amber-700 ring-1 ring-amber-500/30 dark:bg-amber-400/15 dark:text-amber-200'
@@ -182,6 +187,7 @@
                         <div class="min-w-0">
                             <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">${providerName}</p>
                             <p class="truncate text-xs text-slate-500 dark:text-slate-400">${providerUniversity}</p>
+                            <p class="truncate text-xs font-medium text-amber-600 dark:text-amber-300">${ratingText}</p>
                         </div>
                     </div>
                     <div class="flex flex-col items-end gap-1">
@@ -248,6 +254,8 @@
             } else {
                 services = filterLocalServices(keyword, category);
             }
+
+            services = Array.isArray(services) ? services : [];
 
             if (resultCount) {
                 resultCount.innerText = `${services.length} result${services.length === 1 ? '' : 's'}`;

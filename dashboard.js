@@ -3,7 +3,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentUser = window.SHHub?.getUser?.();
   const isNetworkError = (error) => {
     const message = String(error?.message ?? '').toLowerCase();
-    return message.includes('failed to fetch') || message.includes('networkerror') || message.includes('network request failed');
+    return message.includes('failed to fetch')
+      || message.includes('networkerror')
+      || message.includes('network request failed')
+      || message.includes('request timeout')
+      || message.includes('aborterror');
   };
 
   if (isApiMode && window.SHHub?.apiGetProfile) {
@@ -27,6 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const whatsappEl = getElement('user-whatsapp');
   const modeEl = getElement('user-mode');
   const uniEl = getElement('user-uni');
+  const ratingStatEl = getElement('stat-rating');
   const profileImg = getElement('profile-img');
   const upload = getElement('profile-upload');
   const modeSellerBtn = getElement('mode-seller-btn');
@@ -162,6 +167,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const totalEarnings = historyRows.reduce((sum, row) => sum + Number(row.price ?? 0), 0);
     getElement('total-completed').innerText = String(completedCount);
     getElement('total-earnings').innerText = formatKES(totalEarnings);
+    const summary = window.SHHub?.getRatingSummaryForUser?.(currentUser?._id) ?? { average: 0, count: 0 };
+    ratingStatEl.innerText = summary.count > 0
+      ? `★ ${summary.average.toFixed(1)} (${summary.count})`
+      : 'No reviews yet';
 
     const historyBody = getElement('history-table-body');
     historyBody.innerHTML = historyRows
@@ -185,7 +194,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const renderMyServices = async () => {
     try {
-      myServicesCache = await fetchMyServices();
+      const loadedServices = await fetchMyServices();
+      myServicesCache = Array.isArray(loadedServices) ? loadedServices : [];
     } catch (error) {
       myServicesCache = [];
       alert(error?.message || 'Failed to load your services.');

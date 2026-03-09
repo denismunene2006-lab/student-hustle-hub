@@ -123,7 +123,7 @@
             const isApiMode = window.SHHub?.isApiMode?.() === true;
 
             if (modeNoteEl && isApiMode) {
-                modeNoteEl.innerText = `API mode: posting to ${window.SHHub?.getApiBaseUrl?.() ?? ''}`;
+                modeNoteEl.innerText = 'Connected mode: your listing syncs to the server.';
             }
 
             const showError = (message) => {
@@ -133,7 +133,11 @@
 
             const isNetworkError = (error) => {
                 const message = String(error?.message ?? '').toLowerCase();
-                return message.includes('failed to fetch') || message.includes('networkerror') || message.includes('network request failed');
+                return message.includes('failed to fetch')
+                    || message.includes('networkerror')
+                    || message.includes('network request failed')
+                    || message.includes('request timeout')
+                    || message.includes('aborterror');
             };
 
             const applyListingMode = (mode) => {

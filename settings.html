@@ -23,12 +23,24 @@
         }
     </script>
 </head>
-<body class="min-h-screen antialiased text-slate-900 dark:text-slate-100">
+<body class="min-h-screen antialiased text-slate-900 dark:text-slate-100" data-requires-auth="true">
     <div class="app-bg"></div>
     <header id="app-navbar"></header>
 
     <main class="mx-auto max-w-4xl px-4 pb-16 pt-10">
-        <section class="glass rounded-2xl p-6 shadow-sm sm:p-8">
+        <section id="settings-denied" class="hidden glass rounded-2xl p-10 text-center shadow-sm">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300">
+                <i data-lucide="shield-x" class="h-5 w-5"></i>
+            </div>
+            <h1 class="mt-4 text-lg font-semibold text-slate-900 dark:text-white">Access restricted</h1>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Platform connection settings are available only to admin accounts.</p>
+            <a href="index.html" class="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
+                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                Back to browse
+            </a>
+        </section>
+
+        <section id="settings-content" class="hidden glass rounded-2xl p-6 shadow-sm sm:p-8">
             <div class="flex items-start gap-3">
                 <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20 dark:bg-primary/20 dark:ring-primary/30">
                     <i data-lucide="server" class="h-5 w-5"></i>
@@ -110,8 +122,8 @@
                 modeBadge.innerText = apiMode ? 'API mode' : 'Demo mode';
 
                 modeText.innerText = apiMode
-                    ? `Current API: ${baseUrl}`
-                    : 'No API configured. Local browser storage mode is active.';
+                    ? 'Connected mode is enabled.'
+                    : 'Demo mode is enabled for this browser.';
                 input.value = baseUrl;
             };
 
@@ -142,7 +154,7 @@
                 const saved = window.SHHub?.setApiBaseUrl?.(nextUrl) ?? '';
 
                 if (saved) {
-                    showStatus(`Saved API URL: ${saved}`, 'success');
+                    showStatus('Connection settings saved successfully.', 'success');
                 } else {
                     showStatus('API URL cleared. Demo mode enabled.', 'info');
                 }
@@ -161,6 +173,14 @@
                 applyModeUI();
             });
 
+            const currentUser = window.SHHub?.getUser?.();
+            if (!currentUser?.isAdmin) {
+                document.getElementById('settings-denied').classList.remove('hidden');
+                window.SHHub?.refreshIcons?.();
+                return;
+            }
+
+            document.getElementById('settings-content').classList.remove('hidden');
             applyModeUI();
             window.SHHub?.refreshIcons?.();
         });
