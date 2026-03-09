@@ -10,6 +10,32 @@
   const API_REQUEST_TIMEOUT_MS = 12000;
   const ADMIN_EMAILS = [];
 
+  const storageGet = (key) => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  };
+
+  const storageSet = (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const storageRemove = (key) => {
+    try {
+      localStorage.removeItem(key);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const normalizeUrl = (value) => String(value ?? '').trim().replace(/\/+$/, '');
   const normalizeEmail = (value) => String(value ?? '').trim().toLowerCase();
   const normalizeListingType = (value) => (value === 'buyer' ? 'buyer' : 'seller');
@@ -18,7 +44,7 @@
   const getApiBaseUrl = () => {
     const metaValue = document.querySelector('meta[name="api-base-url"]')?.content;
     const globalValue = globalThis.SHHub_API_BASE_URL;
-    const savedValue = localStorage.getItem(API_BASE_KEY);
+    const savedValue = storageGet(API_BASE_KEY);
     const explicit = normalizeUrl(metaValue || globalValue || savedValue || '');
     return explicit;
   };
@@ -26,10 +52,10 @@
   const setApiBaseUrl = (value) => {
     const normalized = normalizeUrl(value);
     if (normalized) {
-      localStorage.setItem(API_BASE_KEY, normalized);
+      storageSet(API_BASE_KEY, normalized);
       return normalized;
     }
-    localStorage.removeItem(API_BASE_KEY);
+    storageRemove(API_BASE_KEY);
     return '';
   };
 
@@ -321,39 +347,39 @@
   };
 
   const getStoredUsersIndex = () => {
-    const users = safeJsonParse(localStorage.getItem(USERS_INDEX_KEY));
+    const users = safeJsonParse(storageGet(USERS_INDEX_KEY));
     return Array.isArray(users) ? users : [];
   };
 
   const setStoredUsersIndex = (users) => {
-    localStorage.setItem(USERS_INDEX_KEY, JSON.stringify(users));
+    storageSet(USERS_INDEX_KEY, JSON.stringify(users));
   };
 
   const getStoredReviews = () => {
-    const reviews = safeJsonParse(localStorage.getItem(REVIEWS_KEY));
+    const reviews = safeJsonParse(storageGet(REVIEWS_KEY));
     return Array.isArray(reviews) ? reviews : [];
   };
 
   const setStoredReviews = (reviews) => {
-    localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
+    storageSet(REVIEWS_KEY, JSON.stringify(reviews));
   };
 
   const getHiddenDemoServiceIds = () => {
-    const ids = safeJsonParse(localStorage.getItem(HIDDEN_DEMO_SERVICES_KEY));
+    const ids = safeJsonParse(storageGet(HIDDEN_DEMO_SERVICES_KEY));
     return Array.isArray(ids) ? ids : [];
   };
 
   const setHiddenDemoServiceIds = (ids) => {
-    localStorage.setItem(HIDDEN_DEMO_SERVICES_KEY, JSON.stringify(ids));
+    storageSet(HIDDEN_DEMO_SERVICES_KEY, JSON.stringify(ids));
   };
 
   const getHiddenDemoReviewIds = () => {
-    const ids = safeJsonParse(localStorage.getItem(HIDDEN_DEMO_REVIEWS_KEY));
+    const ids = safeJsonParse(storageGet(HIDDEN_DEMO_REVIEWS_KEY));
     return Array.isArray(ids) ? ids : [];
   };
 
   const setHiddenDemoReviewIds = (ids) => {
-    localStorage.setItem(HIDDEN_DEMO_REVIEWS_KEY, JSON.stringify(ids));
+    storageSet(HIDDEN_DEMO_REVIEWS_KEY, JSON.stringify(ids));
   };
 
   const normalizeUserPayload = (user, existing = {}) => {
@@ -376,7 +402,7 @@
   };
 
   const getUser = () => {
-    const parsed = safeJsonParse(localStorage.getItem(USER_KEY));
+    const parsed = safeJsonParse(storageGet(USER_KEY));
     if (!parsed) return null;
     return normalizeUserPayload(parsed);
   };
@@ -408,21 +434,21 @@
 
   const setUser = (user) => {
     const mergedUser = upsertUsersIndex(user ?? {});
-    localStorage.setItem(USER_KEY, JSON.stringify(mergedUser));
+    storageSet(USER_KEY, JSON.stringify(mergedUser));
     return mergedUser;
   };
 
   const clearUser = () => {
-    localStorage.removeItem(USER_KEY);
+    storageRemove(USER_KEY);
   };
 
   const getStoredServices = () => {
-    const services = safeJsonParse(localStorage.getItem(SERVICES_KEY));
+    const services = safeJsonParse(storageGet(SERVICES_KEY));
     return Array.isArray(services) ? services : [];
   };
 
   const setStoredServices = (services) => {
-    localStorage.setItem(SERVICES_KEY, JSON.stringify(services));
+    storageSet(SERVICES_KEY, JSON.stringify(services));
   };
 
   const parseApiResponse = async (response) => {
@@ -855,11 +881,11 @@
 
   const resetLocalDemoData = () => {
     const currentUser = getUser();
-    localStorage.removeItem(SERVICES_KEY);
-    localStorage.removeItem(REVIEWS_KEY);
-    localStorage.removeItem(USERS_INDEX_KEY);
-    localStorage.removeItem(HIDDEN_DEMO_SERVICES_KEY);
-    localStorage.removeItem(HIDDEN_DEMO_REVIEWS_KEY);
+    storageRemove(SERVICES_KEY);
+    storageRemove(REVIEWS_KEY);
+    storageRemove(USERS_INDEX_KEY);
+    storageRemove(HIDDEN_DEMO_SERVICES_KEY);
+    storageRemove(HIDDEN_DEMO_REVIEWS_KEY);
 
     if (currentUser) setUser(currentUser);
     return true;
@@ -1007,16 +1033,16 @@
   };
 
   const getThemePreference = () => {
-    const saved = localStorage.getItem(THEME_KEY);
+    const saved = storageGet(THEME_KEY);
     if (saved === 'light' || saved === 'dark') return saved;
-    if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark';
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
     return 'light';
   };
 
   const applyTheme = (theme) => {
     const isDark = theme === 'dark';
     document.documentElement.classList.toggle('dark', isDark);
-    localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+    storageSet(THEME_KEY, isDark ? 'dark' : 'light');
 
     document.querySelectorAll('[data-theme-icon]').forEach((iconHost) => {
       iconHost.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
