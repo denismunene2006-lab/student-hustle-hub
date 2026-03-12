@@ -55,6 +55,14 @@ node scripts/seedDemo.js --confirm
 ```
 This adds 3 demo users and services (prices KES 200–1000). It does nothing unless you pass `--confirm`.
 
+### Admin Access (Manual)
+If the Admin button does not appear, you can manually promote your account:
+```sh
+cd backend
+node scripts/makeAdmin.js --email you@example.com
+```
+Then log out and log back in.
+
 ### Frontend
 1.  Open the `frontend/index.html` file in your browser using a live server extension (like VS Code's "Live Server").
 2.  The site will open, likely at `http://127.0.0.1:5500`.
