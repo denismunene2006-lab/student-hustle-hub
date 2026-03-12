@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Guidelines - Student Hustle Hub</title>
+    <meta name="description" content="Community guidelines for Student Hustle Hub.">
+    <meta name="api-base-url" content="http://localhost:5000/api">
+    <link rel="stylesheet" href="app.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="app.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0F766E',
+                        secondary: '#F59E0B',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen antialiased text-slate-900 dark:text-slate-100">
+    <div class="app-bg"></div>
+    <header id="app-navbar"></header>
+
+    <main class="mx-auto max-w-4xl px-4 pb-16 pt-10">
+        <section class="glass rounded-2xl p-6 shadow-sm sm:p-8">
+            <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Community Guidelines</h1>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Keep Student Hustle Hub safe and helpful for everyone.</p>
+
+            <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                <div class="rounded-xl border border-emerald-200/70 bg-emerald-50 p-4 text-sm text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+                    <p class="font-semibold">Do</p>
+                    <ul class="mt-2 list-disc space-y-1 pl-4">
+                        <li>Be honest about pricing and skills.</li>
+                        <li>Communicate clearly and on time.</li>
+                        <li>Respect privacy and boundaries.</li>
+                        <li>Leave fair, constructive reviews.</li>
+                    </ul>
+                </div>
+                <div class="rounded-xl border border-rose-200/70 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+                    <p class="font-semibold">Do not</p>
+                    <ul class="mt-2 list-disc space-y-1 pl-4">
+                        <li>Post scams, fake services, or plagiarism.</li>
+                        <li>Harass or pressure other students.</li>
+                        <li>Share private data publicly.</li>
+                        <li>Abuse the reporting or review system.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

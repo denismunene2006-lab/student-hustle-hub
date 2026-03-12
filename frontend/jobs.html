@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs - Student Hustle Hub</title>
+    <meta name="description" content="Track job requests, deliveries, and completions on Student Hustle Hub.">
+    <meta name="api-base-url" content="http://localhost:5000/api">
+    <link rel="stylesheet" href="app.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="app.js"></script>
+    <script defer src="jobs.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0F766E',
+                        secondary: '#F59E0B',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen antialiased text-slate-900 dark:text-slate-100" data-requires-auth="true">
+    <div class="app-bg"></div>
+    <header id="app-navbar"></header>
+
+    <main class="mx-auto max-w-7xl px-4 pb-16 pt-10">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Jobs</h1>
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Track requests, deliveries, and confirmed work.</p>
+            </div>
+            <a href="index.html" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60">
+                <i data-lucide="search" class="h-4 w-4"></i>
+                Browse services
+            </a>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div class="glass rounded-2xl p-5 shadow-sm">
+                <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Total jobs</p>
+                <p id="stat-total" class="mt-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">0</p>
+            </div>
+            <div class="glass rounded-2xl p-5 shadow-sm">
+                <p class="text-xs font-medium text-slate-500 dark:text-slate-400">In progress</p>
+                <p id="stat-in-progress" class="mt-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">0</p>
+            </div>
+            <div class="glass rounded-2xl p-5 shadow-sm">
+                <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Completed</p>
+                <p id="stat-completed" class="mt-2 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">0</p>
+            </div>
+        </div>
+
+        <div class="mt-6 glass rounded-2xl p-6 shadow-sm">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Filters</h2>
+                    <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Filter by role or job status.</p>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Payment: Manual (off-platform)</p>
+            </div>
+
+            <div class="mt-4 space-y-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Role</span>
+                    <button type="button" data-role-filter="all" class="filter-btn rounded-xl border border-slate-200/70 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">All</button>
+                    <button type="button" data-role-filter="buyer" class="filter-btn rounded-xl border border-slate-200/70 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">Buyer</button>
+                    <button type="button" data-role-filter="seller" class="filter-btn rounded-xl border border-slate-200/70 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">Seller</button>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Status</span>
+                    <button type="button" data-status-filter="all" class="filter-btn rounded-xl border border-slate-200/70 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">All</button>
+                    <button type="button" data-status-filter="requested" class="filter-btn rounded-xl border border-slate-200/70 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">Requested</button>
+                    <button type="button" data-status-filter="accepted" class="filter-btn rounded-xl border border-slate-200/70 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">Accepted</button>
+                    <button type="button" data-status-filter="in_progress" class="filter-btn rounded-xl border border-slate-200/70 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">In progress</button>
+                    <button type="button" data-status-filter="delivered" class="filter-btn rounded-xl border border-slate-200/70 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">Delivered</button>
+                    <button type="button" data-status-filter="completed" class="filter-btn rounded-xl border border-slate-200/70 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">Completed</button>
+                    <button type="button" data-status-filter="cancelled" class="filter-btn rounded-xl border border-slate-200/70 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">Cancelled</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="jobs-list" class="mt-6 grid grid-cols-1 gap-4"></div>
+        <div id="jobs-empty" class="mt-6 hidden glass rounded-2xl p-10 text-center text-sm text-slate-600 dark:text-slate-300">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900/5 text-slate-600 dark:bg-white/10 dark:text-slate-200">
+                <i data-lucide="clipboard-x" class="h-5 w-5"></i>
+            </div>
+            <p class="mt-4 font-medium">No jobs yet</p>
+            <p class="mt-1 text-slate-500 dark:text-slate-400">Start a job from any service page to see it here.</p>
+        </div>
+    </main>
+</body>
+</html>

@@ -791,6 +791,13 @@
     return true;
   };
 
+  const apiCreateReport = async (payload) => {
+    return apiRequest('/reports', {
+      method: 'POST',
+      body: payload,
+    });
+  };
+
   const apiCreateJob = async (payload) => {
     return apiRequest('/jobs', {
       method: 'POST',
@@ -972,6 +979,7 @@
       return [
         browse,
         navLink('create-service.html', 'plus-circle', 'Post Service', isMobile),
+        navLink('jobs.html', 'clipboard-list', 'Jobs', isMobile),
         navLink('dashboard.html', 'layout-dashboard', 'Dashboard', isMobile),
         adminLink,
         supportLink(isMobile),
@@ -1061,6 +1069,9 @@
 
     const quickLinks = [
       `<a href="index.html" class="${linkClass(false, getCurrentPage() === 'index.html')}">Browse</a>`,
+      `<a href="terms.html" class="${linkClass(false, getCurrentPage() === 'terms.html')}">Terms</a>`,
+      `<a href="guidelines.html" class="${linkClass(false, getCurrentPage() === 'guidelines.html')}">Guidelines</a>`,
+      user ? `<a href="jobs.html" class="${linkClass(false, getCurrentPage() === 'jobs.html')}">Jobs</a>` : '',
       user ? `<a href="dashboard.html" class="${linkClass(false, getCurrentPage() === 'dashboard.html')}">Dashboard</a>` : `<a href="login.html" class="${linkClass(false, getCurrentPage() === 'login.html')}">Login</a>`,
       user ? `<a href="create-service.html" class="${linkClass(false, getCurrentPage() === 'create-service.html')}">Post Service</a>` : `<a href="register.html" class="${buttonClass('primary', false)}">Register</a>`,
       user?.isAdmin ? `<a href="admin.html" class="${linkClass(false, getCurrentPage() === 'admin.html')}">Admin</a>` : '',
@@ -1166,6 +1177,7 @@
     apiGetReviewsForUser,
     apiCreateReview,
     apiDeleteReview,
+    apiCreateReport,
     apiCreateJob,
     apiGetMyJobs,
     apiUpdateJobStatus,

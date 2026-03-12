@@ -94,10 +94,15 @@
                     <i data-lucide="clipboard-check" class="h-4 w-4"></i>
                     Start Job
                 </button>
+
+                <button id="report-btn" type="button" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200/70 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 shadow-sm transition hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20">
+                    <i data-lucide="flag" class="h-4 w-4"></i>
+                    Report listing
+                </button>
             </aside>
         </div>
 
-        <section id="reviews-panel" class="hidden mt-8 glass rounded-2xl p-6 shadow-sm sm:p-8">
+    <section id="reviews-panel" class="hidden mt-8 glass rounded-2xl p-6 shadow-sm sm:p-8">
             <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h2 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Ratings & Reviews</h2>
@@ -136,7 +141,42 @@
                     Submit review
                 </button>
             </form>
-        </section>
+    </section>
+
+    <div id="report-modal" class="fixed inset-0 z-[80] hidden items-center justify-center overflow-y-auto bg-slate-900/55 p-4">
+        <div class="w-full max-w-lg glass rounded-2xl p-6 shadow-xl">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Report listing</h3>
+                    <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Reports are private and reviewed by admins.</p>
+                </div>
+                <button type="button" data-close-report class="rounded-lg p-2 text-slate-500 hover:bg-slate-900/5 hover:text-slate-700 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-slate-100">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+            </div>
+
+            <form id="report-form" class="mt-5 space-y-4">
+                <div>
+                    <label for="report-reason" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Reason</label>
+                    <select id="report-reason" class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white">
+                        <option>Spam or scam</option>
+                        <option>Inappropriate content</option>
+                        <option>Misleading listing</option>
+                        <option>Harassment</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="report-details" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Details (optional)</label>
+                    <textarea id="report-details" rows="3" class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white" placeholder="Share any helpful details..."></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-1">
+                    <button type="button" data-close-report class="rounded-xl border border-slate-200/70 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700/70 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">Cancel</button>
+                    <button type="submit" class="rounded-xl bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-700">Submit report</button>
+                </div>
+            </form>
+        </div>
+    </div>
     </main>
 
     <script>
@@ -224,6 +264,11 @@
             }
 
             const startJobBtn = document.getElementById('start-job-btn');
+            const reportBtn = document.getElementById('report-btn');
+            const reportModal = document.getElementById('report-modal');
+            const reportForm = document.getElementById('report-form');
+            const reportReason = document.getElementById('report-reason');
+            const reportDetails = document.getElementById('report-details');
             const currentUser = window.SHHub?.getUser?.();
             const isOwner = currentUser && String(currentUser._id) === providerId;
             if (startJobBtn) {
@@ -231,6 +276,7 @@
                 startJobBtn.innerHTML = `<i data-lucide="clipboard-check" class="h-4 w-4"></i>${label}`;
                 if (isOwner) startJobBtn.classList.add('hidden');
             }
+            if (reportBtn && isOwner) reportBtn.classList.add('hidden');
 
             startJobBtn?.addEventListener('click', async () => {
                 const user = window.SHHub?.getUser?.();
@@ -248,6 +294,56 @@
                     window.location.href = 'dashboard.html';
                 } catch (error) {
                     window.SHHub?.showToast?.(error?.message || 'Failed to create job.', 'error');
+                }
+            });
+
+            const openReportModal = () => {
+                reportModal?.classList.remove('hidden');
+                reportModal?.classList.add('flex');
+                window.SHHub?.refreshIcons?.();
+            };
+
+            const closeReportModal = () => {
+                reportModal?.classList.add('hidden');
+                reportModal?.classList.remove('flex');
+                if (reportReason) reportReason.value = 'Spam or scam';
+                if (reportDetails) reportDetails.value = '';
+            };
+
+            reportBtn?.addEventListener('click', () => {
+                const user = window.SHHub?.getUser?.();
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                openReportModal();
+            });
+
+            reportModal?.addEventListener('click', (event) => {
+                if (event.target === reportModal) closeReportModal();
+            });
+
+            reportModal?.querySelectorAll('[data-close-report]')?.forEach((button) => {
+                button.addEventListener('click', closeReportModal);
+            });
+
+            reportForm?.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (!window.SHHub?.isApiMode?.()) {
+                    window.SHHub?.showToast?.('API not configured. Cannot send report.', 'error');
+                    return;
+                }
+                try {
+                    await window.SHHub.apiCreateReport({
+                        reportedUserId: providerId,
+                        serviceId: data._id,
+                        reason: reportReason?.value ?? 'Other',
+                        details: reportDetails?.value ?? '',
+                    });
+                    window.SHHub?.showToast?.('Report submitted. Thank you.', 'success');
+                    closeReportModal();
+                } catch (error) {
+                    window.SHHub?.showToast?.(error?.message || 'Failed to submit report.', 'error');
                 }
             });
 
