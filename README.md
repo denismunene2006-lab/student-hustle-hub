@@ -47,6 +47,14 @@ You will need two terminal windows open to run both the frontend and backend sim
     ```
     The API will be running on `http://localhost:5000`.
 
+### Optional: Seed Demo Data
+If you want sample users/services in your local database, run:
+```sh
+cd backend
+node scripts/seedDemo.js --confirm
+```
+This adds 3 demo users and services (prices KES 200–1000). It does nothing unless you pass `--confirm`.
+
 ### Frontend
 1.  Open the `frontend/index.html` file in your browser using a live server extension (like VS Code's "Live Server").
 2.  The site will open, likely at `http://127.0.0.1:5500`.
