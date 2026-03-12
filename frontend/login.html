@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Student Hustle Hub</title>
+    <meta name="description" content="Login to Student Hustle Hub to post and manage your campus services.">
+    <meta name="api-base-url" content="http://localhost:5000/api">
+    <link rel="stylesheet" href="app.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="app.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0F766E',
+                        secondary: '#F59E0B',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen antialiased text-slate-900 dark:text-slate-100">
+    <div class="app-bg"></div>
+    <header id="app-navbar"></header>
+
+    <main class="mx-auto flex max-w-7xl items-center justify-center px-4 py-12">
+        <section class="w-full max-w-md glass rounded-2xl p-6 shadow-sm sm:p-8">
+            <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20 dark:bg-primary/20 dark:ring-primary/30">
+                    <i data-lucide="log-in" class="h-5 w-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-semibold tracking-tight text-slate-900 dark:text-white">Welcome back</h1>
+                    <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Login to manage your services.</p>
+                </div>
+            </div>
+
+            <form id="login-form" class="mt-6 space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Email</label>
+                    <input type="email" id="email" autocomplete="email" required class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="you@university.edu">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Password</label>
+                    <input type="password" id="password" autocomplete="current-password" required class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="••••••••">
+                    <div class="mt-2 flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                        <input id="show-password" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/40 dark:border-slate-600 dark:bg-slate-900">
+                        <label for="show-password" class="select-none">Show password</label>
+                    </div>
+                </div>
+
+                <div id="form-error" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"></div>
+
+                <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
+                    <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                    Login
+                </button>
+            </form>
+
+            <div class="mt-5 flex items-center justify-between text-sm">
+                <a href="register.html" class="font-medium text-primary hover:underline">Create an account</a>
+                <a href="index.html" class="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">Back to browse</a>
+            </div>
+
+            <p id="auth-mode-note" class="mt-6 text-xs text-slate-500 dark:text-slate-400">
+                Demo mode: local login is enabled for static hosting.
+            </p>
+        </section>
+    </main>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('login-form');
+            const errorEl = document.getElementById('form-error');
+            const modeNoteEl = document.getElementById('auth-mode-note');
+            const passwordInput = document.getElementById('password');
+            const showPasswordToggle = document.getElementById('show-password');
+            const isApiMode = window.SHHub?.isApiMode?.() === true;
+            if (modeNoteEl && isApiMode) {
+                modeNoteEl.innerText = 'Connected mode: secure server login is active.';
+            }
+
+            const showError = (message) => {
+                errorEl.innerText = message;
+                errorEl.classList.remove('hidden');
+            };
+
+            const isNetworkError = (error) => {
+                const message = String(error?.message ?? '').toLowerCase();
+                return message.includes('failed to fetch')
+                    || message.includes('networkerror')
+                    || message.includes('network request failed')
+                    || message.includes('request timeout')
+                    || message.includes('aborterror');
+            };
+
+            showPasswordToggle?.addEventListener('change', () => {
+                if (!passwordInput) return;
+                passwordInput.type = showPasswordToggle.checked ? 'text' : 'password';
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                errorEl.classList.add('hidden');
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!email || !password) return showError('Please enter your email and password.');
+
+                try {
+                    if (isApiMode && window.SHHub?.apiLogin) {
+                        await window.SHHub.apiLogin(email, password);
+                    } else {
+                        throw new Error('Cannot login: API connection not configured.');
+                    }
+                    window.location.href = 'dashboard.html';
+                } catch (error) {
+                    showError(error?.message || 'Login failed.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+

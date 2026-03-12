@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Service - Student Hustle Hub</title>
+    <meta name="description" content="Post a new campus service on Student Hustle Hub.">
+    <meta name="api-base-url" content="http://localhost:5000/api">
+    <link rel="stylesheet" href="app.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="app.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0F766E',
+                        secondary: '#F59E0B',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen antialiased text-slate-900 dark:text-slate-100" data-requires-auth="true">
+    <div class="app-bg"></div>
+    <header id="app-navbar"></header>
+
+    <main class="mx-auto max-w-4xl px-4 pb-16 pt-10">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <h1 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">Post a new service</h1>
+                <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Share what you can do. Keep it clear, specific, and honest.</p>
+            </div>
+            <a href="dashboard.html" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60">
+                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                Back to dashboard
+            </a>
+        </div>
+
+        <section class="mt-8 glass rounded-2xl p-6 shadow-sm sm:p-8">
+            <form id="create-form" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">I am posting as</label>
+                    <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <button type="button" data-listing-mode="seller" class="listing-mode-btn inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200/70 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">
+                            <i data-lucide="badge-dollar-sign" class="h-4 w-4"></i>
+                            Seller (Offering Service)
+                        </button>
+                        <button type="button" data-listing-mode="buyer" class="listing-mode-btn inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200/70 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">
+                            <i data-lucide="shopping-bag" class="h-4 w-4"></i>
+                            Buyer (Looking For Service)
+                        </button>
+                    </div>
+                    <input id="listingType" type="hidden" value="seller">
+                </div>
+
+                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div>
+                        <label id="title-label" for="title" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Service title</label>
+                        <input id="title" type="text" required class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="e.g., Calculus tutoring">
+                    </div>
+
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Category</label>
+                        <select id="category" class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white">
+                            <option value="Tutoring">Tutoring</option>
+                            <option value="Assignment Help">Assignment Help</option>
+                            <option value="Graphic Design">Graphic Design</option>
+                            <option value="Programming Help">Programming Help</option>
+                            <option value="CV Writing">CV Writing</option>
+                            <option value="Phone Repair">Phone Repair</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Furniture">Furniture</option>
+                            <option value="Photography">Photography</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label id="price-label" for="price" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Price (KES)</label>
+                        <div class="relative mt-1">
+                            <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500 dark:text-slate-400">KES</span>
+                            <input id="price" type="number" min="1" step="1" required class="w-full rounded-xl border border-slate-200/70 bg-white/80 py-3 pl-12 pr-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="2500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="contactInfo" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Contact info</label>
+                        <input id="contactInfo" type="text" required class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="WhatsApp number e.g. 0712345678">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="description" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Description</label>
+                    <textarea id="description" required rows="5" class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="What do you offer? What's included? Any requirements?"></textarea>
+                </div>
+
+                <div id="form-error" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"></div>
+
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p id="service-mode-note" class="text-xs text-slate-500 dark:text-slate-400">
+                        Connecting to server...
+                    </p>
+                    <button id="submit-btn" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
+                        <i data-lucide="plus-circle" class="h-4 w-4"></i>
+                        Post service
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const user = window.SHHub?.getUser?.() ?? {};
+            const form = document.getElementById('create-form');
+            const errorEl = document.getElementById('form-error');
+            const listingTypeInput = document.getElementById('listingType');
+            const modeButtons = Array.from(document.querySelectorAll('[data-listing-mode]'));
+            const titleLabel = document.getElementById('title-label');
+            const priceLabel = document.getElementById('price-label');
+            const submitBtn = document.getElementById('submit-btn');
+            const contactInput = document.getElementById('contactInfo');
+            const modeNoteEl = document.getElementById('service-mode-note');
+            const isApiMode = window.SHHub?.isApiMode?.() === true;
+
+            if (modeNoteEl && isApiMode) {
+                modeNoteEl.innerText = 'Connected mode: your listing syncs to the server.';
+            }
+
+            const showError = (message) => {
+                errorEl.innerText = message;
+                errorEl.classList.remove('hidden');
+            };
+
+            const isNetworkError = (error) => {
+                const message = String(error?.message ?? '').toLowerCase();
+                return message.includes('failed to fetch')
+                    || message.includes('networkerror')
+                    || message.includes('network request failed')
+                    || message.includes('request timeout')
+                    || message.includes('aborterror');
+            };
+
+            const applyListingMode = (mode) => {
+                const safeMode = mode === 'buyer' ? 'buyer' : 'seller';
+                listingTypeInput.value = safeMode;
+
+                modeButtons.forEach((button) => {
+                    const active = button.getAttribute('data-listing-mode') === safeMode;
+                    button.classList.toggle('bg-primary', active);
+                    button.classList.toggle('text-white', active);
+                    button.classList.toggle('border-primary', active);
+                    button.classList.toggle('hover:bg-primary/90', active);
+                    button.classList.toggle('bg-white', !active);
+                    button.classList.toggle('text-slate-700', !active);
+                });
+
+                if (safeMode === 'buyer') {
+                    titleLabel.innerText = 'Request title';
+                    priceLabel.innerText = 'Budget (KES)';
+                    submitBtn.innerHTML = '<i data-lucide="plus-circle" class="h-4 w-4"></i>Post request';
+                } else {
+                    titleLabel.innerText = 'Service title';
+                    priceLabel.innerText = 'Price (KES)';
+                    submitBtn.innerHTML = '<i data-lucide="plus-circle" class="h-4 w-4"></i>Post service';
+                }
+                window.SHHub?.refreshIcons?.();
+            };
+
+            modeButtons.forEach((button) => {
+                button.addEventListener('click', () => applyListingMode(button.getAttribute('data-listing-mode')));
+            });
+
+            if (!contactInput.value) {
+                contactInput.value = user.whatsappNumber ?? '';
+            }
+            applyListingMode(user.marketMode ?? 'seller');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                errorEl.classList.add('hidden');
+
+                const payload = {
+                    title: document.getElementById('title').value,
+                    description: document.getElementById('description').value,
+                    category: document.getElementById('category').value,
+                    listingType: listingTypeInput.value,
+                    price: document.getElementById('price').value,
+                    contactInfo: document.getElementById('contactInfo').value,
+                };
+
+                try {
+                    if (isApiMode && window.SHHub?.apiCreateService) {
+                        await window.SHHub.apiCreateService(payload);
+                    } else {
+                        // This was the fallback to local storage. Now it's an error.
+                        throw new Error('Cannot create service: API connection not configured.');
+                    }
+                    window.location.href = 'dashboard.html';
+                } catch (err) {
+                    showError(err?.message || 'Failed to post service.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

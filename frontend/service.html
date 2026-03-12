@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Details - Student Hustle Hub</title>
+    <meta name="description" content="View service details and contact the provider on Student Hustle Hub.">
+    <meta name="api-base-url" content="http://localhost:5000/api">
+    <link rel="stylesheet" href="app.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="app.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0F766E',
+                        secondary: '#F59E0B'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen antialiased text-slate-900 dark:text-slate-100">
+    <div class="app-bg"></div>
+    <header id="app-navbar"></header>
+
+    <main class="mx-auto max-w-7xl px-4 pb-16 pt-10">
+        <div class="flex items-center justify-between gap-4">
+            <a href="index.html" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60">
+                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                Back to browse
+            </a>
+            <button id="share-btn" type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60">
+                <i data-lucide="share-2" class="h-4 w-4"></i>
+                Share
+            </button>
+        </div>
+
+        <div id="not-found" class="hidden mt-8 glass rounded-2xl p-10 text-center text-sm text-slate-600 dark:text-slate-300">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900/5 text-slate-600 dark:bg-white/10 dark:text-slate-200">
+                <i data-lucide="file-question" class="h-5 w-5"></i>
+            </div>
+            <p class="mt-4 font-medium">Service not found</p>
+            <p class="mt-1 text-slate-500 dark:text-slate-400">The link may be outdated, or the service was removed.</p>
+            <a href="index.html" class="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
+                <i data-lucide="search" class="h-4 w-4"></i>
+                Browse services
+            </a>
+        </div>
+
+        <div id="content" class="hidden mt-8 grid gap-6 lg:grid-cols-3">
+            <section class="glass rounded-2xl p-6 shadow-sm lg:col-span-2 sm:p-8">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span id="listing-type" class="inline-flex w-fit items-center rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-500/30 dark:bg-emerald-400/15 dark:text-emerald-200"></span>
+                        <span id="cat" class="inline-flex w-fit items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary ring-1 ring-primary/20 dark:bg-primary/20 dark:ring-primary/30"></span>
+                    </div>
+                    <span id="created" class="text-xs font-medium text-slate-500 dark:text-slate-400"></span>
+                </div>
+                <h1 id="title" class="mt-4 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white"></h1>
+                <p id="desc" class="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-600 dark:text-slate-300"></p>
+            </section>
+
+            <aside class="glass rounded-2xl p-6 shadow-sm sm:p-8">
+                <a href="#" id="provider-link" class="flex items-center gap-3 group/profile">
+                    <img id="provider-img" alt="Provider" class="h-12 w-12 rounded-2xl object-cover ring-2 ring-primary/30" src="">
+                    <div class="min-w-0">
+                        <p id="provider-name" class="truncate text-sm font-semibold text-slate-900 dark:text-white group-hover/profile:text-primary dark:group-hover/profile:text-secondary"></p>
+                        <p id="provider-uni" class="truncate text-xs text-slate-500 dark:text-slate-400"></p>
+                        <p id="provider-email" class="truncate text-xs text-slate-500 dark:text-slate-400"></p>
+                        <p id="provider-rating" class="truncate text-xs font-medium text-amber-600 dark:text-amber-300"></p>
+                    </div>
+                </a>
+
+                <div class="mt-6 rounded-xl border border-slate-200/70 bg-white/60 p-4 dark:border-slate-700/60 dark:bg-slate-950/40">
+                    <p id="price-label" class="text-xs font-medium text-slate-500 dark:text-slate-400">Price (KES)</p>
+                    <p id="price" class="mt-2 text-3xl font-semibold tracking-tight text-secondary"></p>
+                </div>
+
+                <div class="mt-5 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                    <p class="flex items-center gap-2"><span class="font-medium text-slate-900 dark:text-white">Contact:</span> <span id="contact"></span></p>
+                </div>
+
+                <a id="whatsapp-btn" href="#" target="_blank" class="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-600">
+                    <i data-lucide="message-circle" class="h-4 w-4"></i>
+                    Contact on WhatsApp
+                </a>
+
+                <button id="start-job-btn" type="button" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
+                    <i data-lucide="clipboard-check" class="h-4 w-4"></i>
+                    Start Job
+                </button>
+            </aside>
+        </div>
+
+        <section id="reviews-panel" class="hidden mt-8 glass rounded-2xl p-6 shadow-sm sm:p-8">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Ratings & Reviews</h2>
+                    <p id="reviews-summary" class="mt-1 text-sm text-slate-600 dark:text-slate-300"></p>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Only logged-in students can leave a review.</p>
+            </div>
+
+            <div id="reviews-list" class="mt-5 space-y-3">
+                <div class="rounded-xl border border-slate-200/70 bg-white/60 p-4 text-sm text-slate-600 dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-300">
+                    Loading reviews...
+                </div>
+            </div>
+
+            <form id="review-form" class="mt-6 space-y-4 rounded-xl border border-slate-200/70 bg-white/60 p-4 dark:border-slate-700/60 dark:bg-slate-950/40">
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Leave a review</h3>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <label for="review-rating" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Rating</label>
+                        <select id="review-rating" class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white">
+                            <option value="5">5 - Excellent</option>
+                            <option value="4">4 - Very good</option>
+                            <option value="3">3 - Good</option>
+                            <option value="2">2 - Fair</option>
+                            <option value="1">1 - Poor</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label for="review-comment" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Comment</label>
+                    <textarea id="review-comment" rows="3" required class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="Share your experience with this student..."></textarea>
+                </div>
+                <div id="review-error" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"></div>
+                <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
+                    <i data-lucide="star" class="h-4 w-4"></i>
+                    Submit review
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            const isApiMode = window.SHHub?.isApiMode?.() === true;
+
+            const shouldFallbackToLocal = (error) => {
+                const message = String(error?.message ?? '').toLowerCase();
+                return message.includes('failed to fetch')
+                    || message.includes('networkerror')
+                    || message.includes('network request failed')
+                    || message.includes('request timeout')
+                    || message.includes('aborterror')
+                    || message.includes('request failed');
+            };
+
+            let data = null;
+            try {
+                if (isApiMode && window.SHHub?.apiGetServiceById) {
+                    data = await window.SHHub.apiGetServiceById(id);
+                } else {
+                    data = window.SHHub?.getServiceById?.(id);
+                }
+            } catch {
+                data = window.SHHub?.getServiceById?.(id) ?? null;
+            }
+
+            if (!data) {
+                document.getElementById('not-found').classList.remove('hidden');
+                window.SHHub?.refreshIcons?.();
+                return;
+            }
+
+            document.getElementById('content').classList.remove('hidden');
+            document.getElementById('reviews-panel').classList.remove('hidden');
+            const listingType = data?.listingType === 'buyer' ? 'buyer' : 'seller';
+            document.getElementById('cat').innerText = data.category ?? '';
+            const listingTypeEl = document.getElementById('listing-type');
+            listingTypeEl.innerText = listingType === 'buyer' ? 'Buyer Request' : 'Seller Offer';
+            listingTypeEl.className = listingType === 'buyer'
+                ? 'inline-flex w-fit items-center rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-500/30 dark:bg-amber-400/15 dark:text-amber-200'
+                : 'inline-flex w-fit items-center rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-500/30 dark:bg-emerald-400/15 dark:text-emerald-200';
+            document.getElementById('title').innerText = data.title ?? '';
+            document.getElementById('desc').innerText = data.description ?? '';
+            const priceLabel = listingType === 'buyer' ? 'Budget (KES)' : 'Price (KES)';
+            document.getElementById('price-label').innerText = priceLabel;
+            document.getElementById('price').innerText = window.SHHub?.formatKES?.(data.price) ?? `KES ${Number(data.price ?? 0).toLocaleString('en-KE')}`;
+
+            const createdAt = data.createdAt ? new Date(data.createdAt) : null;
+            document.getElementById('created').innerText = createdAt ? `Posted ${createdAt.toLocaleDateString()}` : '';
+
+            const provider = data.user ?? {};
+            document.getElementById('provider-name').innerText = provider.name ?? '';
+            document.getElementById('provider-uni').innerText = provider.university ?? '';
+            document.getElementById('provider-email').innerText = provider.email ?? '';
+            document.getElementById('provider-img').src = provider.image ?? `https://i.pravatar.cc/150?u=${encodeURIComponent(provider.email ?? provider.name ?? 'provider')}`;
+            const providerId = String(provider._id ?? '');
+            document.getElementById('provider-link').href = `profile.html?id=${providerId}`;
+
+            const contact = String(data.contactInfo ?? '').trim();
+            const contactEl = document.getElementById('contact');
+            contactEl.innerText = contact || '-';
+
+            if (contact && window.SHHub?.createCopyButton) {
+                const copyBtn = window.SHHub.createCopyButton(contact, { toastMessage: 'Contact info copied!' });
+                contactEl.insertAdjacentElement('afterend', copyBtn);
+            }
+
+            const whatsappBtn = document.getElementById('whatsapp-btn');
+            const waNumber = contact.replace(/[^\d]/g, '');
+            if (waNumber.length >= 8) {
+                const providerName = provider.name ?? 'Student';
+                const message = listingType === 'buyer'
+                    ? `Hi ${providerName}, I can help with your request: ${data.title}`
+                    : `Hi ${providerName}, I'm interested in your service: ${data.title}`;
+                whatsappBtn.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
+                whatsappBtn.innerHTML = listingType === 'buyer'
+                    ? '<i data-lucide="message-circle" class="h-4 w-4"></i> Offer help on WhatsApp'
+                    : '<i data-lucide="message-circle" class="h-4 w-4"></i> Contact on WhatsApp';
+                whatsappBtn.classList.remove('hidden');
+            } else {
+                whatsappBtn.classList.add('hidden');
+            }
+
+            const startJobBtn = document.getElementById('start-job-btn');
+            const currentUser = window.SHHub?.getUser?.();
+            const isOwner = currentUser && String(currentUser._id) === providerId;
+            if (startJobBtn) {
+                const label = listingType === 'buyer' ? 'Offer to help' : 'Request service';
+                startJobBtn.innerHTML = `<i data-lucide="clipboard-check" class="h-4 w-4"></i>${label}`;
+                if (isOwner) startJobBtn.classList.add('hidden');
+            }
+
+            startJobBtn?.addEventListener('click', async () => {
+                const user = window.SHHub?.getUser?.();
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (!window.SHHub?.isApiMode?.()) {
+                    window.SHHub?.showToast?.('API not configured. Go to settings.', 'error');
+                    return;
+                }
+                try {
+                    await window.SHHub.apiCreateJob({ serviceId: data._id });
+                    window.SHHub?.showToast?.('Job request sent.', 'success');
+                    window.location.href = 'dashboard.html';
+                } catch (error) {
+                    window.SHHub?.showToast?.(error?.message || 'Failed to create job.', 'error');
+                }
+            });
+
+            const reviewForm = document.getElementById('review-form');
+            const reviewErrorEl = document.getElementById('review-error');
+            const reviewsListEl = document.getElementById('reviews-list');
+            const reviewsSummaryEl = document.getElementById('reviews-summary');
+            const providerRatingEl = document.getElementById('provider-rating');
+            const isLoggedIn = Boolean(window.SHHub?.getUser?.());
+
+            if (!isLoggedIn) {
+                reviewForm.classList.add('opacity-70');
+            }
+
+            const showReviewError = (message) => {
+                reviewErrorEl.innerText = message;
+                reviewErrorEl.classList.remove('hidden');
+            };
+
+            const clearReviewError = () => {
+                reviewErrorEl.classList.add('hidden');
+            };
+
+            const computeSummary = (reviews) => {
+                const count = reviews.length;
+                if (!count) return { average: 0, count: 0 };
+                const total = reviews.reduce((sum, review) => sum + Number(review?.rating ?? 0), 0);
+                const average = total / count;
+                return { average: Number.isFinite(average) ? average : 0, count };
+            };
+
+            const loadReviews = async () => {
+                let reviews = [];
+                if (isApiMode && window.SHHub?.apiGetReviewsForUser) {
+                    try {
+                        reviews = await window.SHHub.apiGetReviewsForUser(providerId);
+                    } catch (error) {
+                        if (!shouldFallbackToLocal(error)) throw error;
+                        reviews = window.SHHub?.getReviewsForUser?.(providerId) ?? [];
+                    }
+                } else {
+                    reviews = window.SHHub?.getReviewsForUser?.(providerId) ?? [];
+                }
+
+                const safeReviews = Array.isArray(reviews) ? reviews : [];
+                const summaryFromApi = computeSummary(safeReviews);
+                const summaryFromLocal = window.SHHub?.getRatingSummaryForUser?.(providerId);
+                const summary = summaryFromLocal?.count ? summaryFromLocal : summaryFromApi;
+
+                providerRatingEl.innerText = summary.count > 0
+                    ? `★ ${summary.average.toFixed(1)} (${summary.count} review${summary.count === 1 ? '' : 's'})`
+                    : 'No reviews yet';
+                reviewsSummaryEl.innerText = summary.count > 0
+                    ? `${summary.count} review${summary.count === 1 ? '' : 's'} • Average ${summary.average.toFixed(1)} / 5`
+                    : 'Be the first to review this student.';
+
+                if (!safeReviews.length) {
+                    reviewsListEl.innerHTML = `
+                        <div class="rounded-xl border border-slate-200/70 bg-white/60 p-4 text-sm text-slate-600 dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-300">
+                            No reviews yet.
+                        </div>
+                    `;
+                    return;
+                }
+
+                const currentUser = window.SHHub?.getUser?.();
+                reviewsListEl.innerHTML = safeReviews.map((review) => {
+                    const reviewerName = review?.reviewerName ?? review?.reviewer?.name ?? 'Student';
+                    const rating = Math.max(1, Math.min(5, Math.round(Number(review?.rating ?? 0))));
+                    const stars = '★'.repeat(rating);
+                    const createdAt = review?.createdAt ? new Date(review.createdAt).toLocaleDateString() : '';
+                    const canDelete = Boolean(currentUser && (currentUser.isAdmin || currentUser._id === review?.reviewerUserId));
+
+                    return `
+                        <article class="rounded-xl border border-slate-200/70 bg-white/60 p-4 dark:border-slate-700/60 dark:bg-slate-950/40">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">${reviewerName}</p>
+                                    <p class="text-xs font-medium text-amber-600 dark:text-amber-300">${stars} (${rating}/5)</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-slate-500 dark:text-slate-400">${createdAt}</span>
+                                    ${canDelete ? `<button type="button" data-review-delete="${review._id}" class="rounded-lg px-2 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-600/10 dark:text-rose-300 dark:hover:bg-rose-300/10">Delete</button>` : ''}
+                                </div>
+                            </div>
+                            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">${String(review?.comment ?? '').trim()}</p>
+                        </article>
+                    `;
+                }).join('');
+            };
+
+            reviewsListEl.addEventListener('click', async (event) => {
+                const deleteBtn = event.target.closest('[data-review-delete]');
+                if (!deleteBtn) return;
+                const reviewId = deleteBtn.getAttribute('data-review-delete');
+                if (!reviewId) return;
+                if (!confirm('Delete this review?')) return;
+
+                try {
+                    if (isApiMode && window.SHHub?.apiDeleteReview) {
+                        try {
+                            await window.SHHub.apiDeleteReview(reviewId);
+                        } catch (error) {
+                            if (!shouldFallbackToLocal(error)) throw error;
+                            window.SHHub?.deleteReview?.(reviewId);
+                        }
+                    } else {
+                        window.SHHub?.deleteReview?.(reviewId);
+                    }
+                    await loadReviews();
+                } catch (error) {
+                    showReviewError(error?.message || 'Failed to delete review.');
+                }
+            });
+
+            reviewForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                clearReviewError();
+
+                const currentUser = window.SHHub?.getUser?.();
+                if (!currentUser) {
+                    showReviewError('Please login to leave a review.');
+                    return;
+                }
+
+                const rating = Number(document.getElementById('review-rating').value);
+                const comment = document.getElementById('review-comment').value.trim();
+                const localPayload = {
+                    studentId: providerId,
+                    serviceId: data._id,
+                    rating,
+                    comment,
+                };
+
+                try {
+                    if (isApiMode && window.SHHub?.apiCreateReview) {
+                        try {
+                            await window.SHHub.apiCreateReview({
+                                reviewedUserId: providerId,
+                                serviceId: data._id,
+                                rating,
+                                comment,
+                            });
+                        } catch (error) {
+                            if (!shouldFallbackToLocal(error)) throw error;
+                            window.SHHub?.addReview?.(localPayload);
+                        }
+                    } else {
+                        window.SHHub?.addReview?.(localPayload);
+                    }
+
+                    document.getElementById('review-comment').value = '';
+                    document.getElementById('review-rating').value = '5';
+                    await loadReviews();
+                } catch (error) {
+                    showReviewError(error?.message || 'Failed to submit review.');
+                }
+            });
+
+            document.getElementById('share-btn').addEventListener('click', () => {
+                navigator.clipboard.writeText(window.location.href);
+                window.SHHub?.showToast?.('Link copied to clipboard!', 'success');
+            });
+
+            await loadReviews();
+
+            window.SHHub?.refreshIcons?.();
+        });
+    </script>
+</body>
+</html>

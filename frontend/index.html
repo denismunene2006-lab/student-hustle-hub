@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Student Hustle Hub</title>
+
+<meta name="description" content="Modern campus marketplace for student talent: tutoring, assignment support, design, programming, CV writing, and more.">
+<!-- Add this line to connect to your local backend -->
+<meta name="api-base-url" content="http://localhost:5000/api">
+
+<link rel="stylesheet" href="app.css">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://unpkg.com/lucide@latest"></script>
+
+<script defer src="app.js"></script>
+
+<script>
+tailwind.config = {
+darkMode: 'class',
+theme: {
+extend: {
+colors: {
+primary: '#0F766E',
+secondary: '#F59E0B',
+}
+}
+}
+}
+</script>
+
+</head>
+
+<body class="min-h-screen antialiased text-slate-900 dark:text-slate-100">
+
+<div class="app-bg"></div>
+
+<header id="app-navbar"></header>
+
+<main class="mx-auto max-w-7xl px-4 pb-16 pt-10">
+
+<section class="hero-shell mx-auto max-w-4xl rounded-3xl px-6 py-10 text-center sm:px-10">
+
+<div class="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/70 px-3 py-1 text-xs font-medium text-slate-700 shadow-sm backdrop-blur dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-slate-200">
+<span class="inline-flex h-2 w-2 rounded-full bg-secondary"></span>
+Built for campus
+</div>
+
+<h1 class="mt-5 text-4xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+Your modern marketplace for
+<span class="bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
+student talent
+</span>.
+</h1>
+
+<p class="mt-4 text-base leading-relaxed text-slate-600 dark:text-slate-300 sm:text-lg">
+Discover tutoring, assignment support, design, programming, CV writing, and more from trusted students right on campus.
+</p>
+
+</section>
+
+
+<section class="mt-10 rounded-3xl border border-slate-200/70 bg-white/55 p-4 shadow-[0_18px_42px_-34px_rgba(15,23,42,.45)] backdrop-blur-sm dark:border-slate-700/60 dark:bg-slate-950/35 sm:p-6">
+
+<div class="mb-4 flex items-end justify-between gap-4">
+<h2 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
+Services
+</h2>
+
+<p id="result-count" class="text-sm text-slate-600 dark:text-slate-300"></p>
+
+</div>
+
+<div id="services-grid" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+<div class="glass rounded-2xl p-6 text-center text-sm text-slate-600 dark:text-slate-300">
+Loading services...
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+<script defer src="home.js"></script>
+
+</body>
+</html>

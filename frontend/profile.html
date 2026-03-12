@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile - Student Hustle Hub</title>
+    <meta name="description" content="View a student's profile, services, and reviews on Student Hustle Hub.">
+    <meta name="api-base-url" content="http://localhost:5000/api">
+    <link rel="stylesheet" href="app.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="app.js"></script>
+    <script defer src="profile.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0F766E',
+                        secondary: '#F59E0B',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen antialiased text-slate-900 dark:text-slate-100">
+    <div class="app-bg"></div>
+    <header id="app-navbar"></header>
+
+    <main class="mx-auto max-w-7xl px-4 pb-16 pt-10">
+        <a href="index.html" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60">
+            <i data-lucide="arrow-left" class="h-4 w-4"></i>
+            Back to browse
+        </a>
+
+        <div id="not-found" class="hidden mt-8 glass rounded-2xl p-10 text-center text-sm text-slate-600 dark:text-slate-300">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900/5 text-slate-600 dark:bg-white/10 dark:text-slate-200">
+                <i data-lucide="user-x" class="h-5 w-5"></i>
+            </div>
+            <p class="mt-4 font-medium">User not found</p>
+            <p class="mt-1 text-slate-500 dark:text-slate-400">The link may be outdated, or the user no longer exists.</p>
+        </div>
+
+        <div id="content" class="hidden mt-8 grid gap-6 lg:grid-cols-3">
+            <aside class="glass rounded-2xl p-6 shadow-sm lg:col-span-1">
+                <div class="flex flex-col items-center text-center">
+                    <img id="profile-img" alt="Profile" class="h-24 w-24 rounded-full object-cover ring-2 ring-primary/30">
+                    <h1 id="user-name" class="mt-4 text-xl font-semibold tracking-tight text-slate-900 dark:text-white"></h1>
+                    <p id="user-uni" class="text-sm text-slate-600 dark:text-slate-300"></p>
+                    <p id="user-rating" class="mt-1 text-sm font-medium text-amber-600 dark:text-amber-300"></p>
+                </div>
+
+                <div class="mt-5 border-t border-slate-200/50 pt-5 dark:border-slate-700/50">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Bio</h3>
+                    <p id="user-bio" class="mt-2 text-sm text-slate-600 dark:text-slate-300"></p>
+                </div>
+
+                <div class="mt-5 border-t border-slate-200/50 pt-5 dark:border-slate-700/50">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Contact</h3>
+                    <div class="mt-2 flex items-center gap-2">
+                        <p id="user-contact" class="text-sm text-slate-600 dark:text-slate-300"></p>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="space-y-6 lg:col-span-2">
+                <div class="glass rounded-2xl p-6 shadow-sm">
+                    <h2 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Services by <span class="provider-name-placeholder"></span></h2>
+                    <div id="services-list" class="mt-4 space-y-3">
+                        <div class="p-4 text-sm text-slate-600 dark:text-slate-300">Loading services...</div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-2xl p-6 shadow-sm">
+                    <h2 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Reviews for <span class="provider-name-placeholder"></span></h2>
+                    <div id="reviews-list" class="mt-4 space-y-3">
+                        <div class="p-4 text-sm text-slate-600 dark:text-slate-300">Loading reviews...</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

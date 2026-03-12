@@ -6,10 +6,14 @@ yarn-error.log*
 .env
 .env.*.local
 
+.vscode/
+.postman/
+postman/
+github-live.png
+
 dist/
 build/
 .vite/
 
 .DS_Store
 Thumbs.db
-
