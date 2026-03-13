@@ -46,7 +46,7 @@
     const metaValue = document.querySelector('meta[name="api-base-url"]')?.content;
     const globalValue = globalThis.SHHub_API_BASE_URL;
     const savedValue = storageGet(API_BASE_KEY);
-    const explicit = normalizeUrl(metaValue || globalValue || savedValue || '');
+    const explicit = normalizeUrl(savedValue || globalValue || metaValue || '');
     return explicit;
   };
 
@@ -163,6 +163,8 @@
       bio: String(user?.bio ?? existing?.bio ?? '').trim(),
       marketMode: normalizeListingType(user?.marketMode ?? existing?.marketMode),
       isAdmin: Boolean(user?.isAdmin ?? existing?.isAdmin ?? isAdminEmail(email)),
+      isSuspended: Boolean(user?.isSuspended ?? existing?.isSuspended ?? false),
+      suspensionReason: String(user?.suspensionReason ?? existing?.suspensionReason ?? '').trim(),
       token: String(user?.token ?? existing?.token ?? '').trim(),
     };
   };
@@ -326,7 +328,7 @@
         university: user.university ?? 'Campus University',
         email: user.email ?? '',
         whatsappNumber: user.whatsappNumber ?? '',
-        image: user.image ?? `https://i.pravatar.cc/150?u=${encodeURIComponent(user.email ?? user.name ?? 'user')}`,
+        image: user.image ?? `https://i.pravatar.cc/100?u=${encodeURIComponent(user.email ?? user.name ?? 'user')}`,
       },
     };
 
@@ -618,6 +620,65 @@
     return users[index];
   };
 
+  const setUserSuspendedLocal = (userId, enabled, reason = '') => {
+    const cleanReason = String(reason ?? '').trim();
+    const users = getStoredUsersIndex();
+    const index = users.findIndex((item) => item?._id === userId);
+    if (index === -1) throw new Error('User not found');
+
+    users[index] = {
+      ...users[index],
+      isSuspended: Boolean(enabled),
+      suspensionReason: Boolean(enabled) ? cleanReason : '',
+      updatedAt: new Date().toISOString(),
+    };
+    setStoredUsersIndex(users);
+
+    const current = getUser();
+    if (current?._id === userId) {
+      setUser({
+        ...current,
+        isSuspended: Boolean(enabled),
+        suspensionReason: Boolean(enabled) ? cleanReason : '',
+      });
+    }
+    return users[index];
+  };
+
+  const adminDeleteUserLocal = (userId) => {
+    const currentUser = getUser();
+    if (!currentUser?.isAdmin) throw new Error('Admin access required');
+
+    const targetId = String(userId ?? '').trim();
+    if (!targetId) throw new Error('User ID is required');
+    if (currentUser?._id === targetId) throw new Error('You cannot delete your own account');
+
+    const users = getStoredUsersIndex();
+    const index = users.findIndex((item) => item?._id === targetId);
+    if (index === -1) throw new Error('User not found');
+
+    users.splice(index, 1);
+    setStoredUsersIndex(users);
+
+    const storedServices = getStoredServices();
+    const removedServiceIds = storedServices
+      .filter((service) => service?.user?._id === targetId)
+      .map((service) => service._id);
+    const remainingServices = storedServices.filter((service) => service?.user?._id !== targetId);
+    setStoredServices(remainingServices);
+
+    const storedReviews = getStoredReviews();
+    const filteredReviews = storedReviews.filter((review) => {
+      const byUser = String(review?.reviewerUserId ?? '') === targetId;
+      const aboutUser = String(review?.studentId ?? '') === targetId;
+      const forService = removedServiceIds.includes(review?.serviceId);
+      return !(byUser || aboutUser || forService);
+    });
+    setStoredReviews(filteredReviews);
+
+    return true;
+  };
+
   const adminDeleteServiceLocal = (serviceId) => {
     const user = getUser();
     if (!user?.isAdmin) throw new Error('Admin access required');
@@ -831,9 +892,25 @@
     });
   };
 
+  const apiSetUserSuspended = async (userId, enabled, reason = '') => {
+    if (!userId) throw new Error('User ID is required');
+    return apiRequest(`/admin/users/${encodeURIComponent(userId)}/suspend`, {
+      method: 'PUT',
+      body: { isSuspended: Boolean(enabled), reason: String(reason ?? '').trim() },
+    });
+  };
+
   const apiAdminDeleteService = async (serviceId) => {
     if (!serviceId) throw new Error('Service ID is required');
     await apiRequest(`/admin/services/${encodeURIComponent(serviceId)}`, {
+      method: 'DELETE',
+    });
+    return true;
+  };
+
+  const apiAdminDeleteUser = async (userId) => {
+    if (!userId) throw new Error('User ID is required');
+    await apiRequest(`/admin/users/${encodeURIComponent(userId)}`, {
       method: 'DELETE',
     });
     return true;
@@ -979,7 +1056,6 @@
       return [
         browse,
         navLink('create-service.html', 'plus-circle', 'Post Service', isMobile),
-        navLink('jobs.html', 'clipboard-list', 'Jobs', isMobile),
         navLink('dashboard.html', 'layout-dashboard', 'Dashboard', isMobile),
         adminLink,
         supportLink(isMobile),
@@ -1071,7 +1147,6 @@
       `<a href="index.html" class="${linkClass(false, getCurrentPage() === 'index.html')}">Browse</a>`,
       `<a href="terms.html" class="${linkClass(false, getCurrentPage() === 'terms.html')}">Terms</a>`,
       `<a href="guidelines.html" class="${linkClass(false, getCurrentPage() === 'guidelines.html')}">Guidelines</a>`,
-      user ? `<a href="jobs.html" class="${linkClass(false, getCurrentPage() === 'jobs.html')}">Jobs</a>` : '',
       user ? `<a href="dashboard.html" class="${linkClass(false, getCurrentPage() === 'dashboard.html')}">Dashboard</a>` : `<a href="login.html" class="${linkClass(false, getCurrentPage() === 'login.html')}">Login</a>`,
       user ? `<a href="create-service.html" class="${linkClass(false, getCurrentPage() === 'create-service.html')}">Post Service</a>` : `<a href="register.html" class="${buttonClass('primary', false)}">Register</a>`,
       user?.isAdmin ? `<a href="admin.html" class="${linkClass(false, getCurrentPage() === 'admin.html')}">Admin</a>` : '',
@@ -1155,6 +1230,8 @@
     getAdminServicesLocal,
     getAdminReviewsLocal,
     setUserAdminLocal,
+    setUserSuspendedLocal,
+    adminDeleteUserLocal,
     adminDeleteServiceLocal,
     adminDeleteReviewLocal,
     resetLocalDemoData,
@@ -1186,6 +1263,8 @@
     apiGetAdminServices,
     apiGetAdminReviews,
     apiSetUserAdmin,
+    apiSetUserSuspended,
+    apiAdminDeleteUser,
     apiAdminDeleteService,
     apiAdminDeleteReview,
   };

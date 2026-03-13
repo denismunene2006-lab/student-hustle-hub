@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Console - Student Hustle Hub</title>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com">
     <meta name="description" content="Admin controls and platform overview for Student Hustle Hub.">
     <meta name="api-base-url" content="http://localhost:5000/api">
     <link rel="stylesheet" href="app.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="config.js"></script>
     <script defer src="app.js"></script>
     <script>
         tailwind.config = {
@@ -89,6 +92,7 @@
                                 <th class="px-4 py-3">Email</th>
                                 <th class="px-4 py-3">University</th>
                                 <th class="px-4 py-3">Role</th>
+                                <th class="px-4 py-3">Status</th>
                                 <th class="px-4 py-3">Action</th>
                             </tr>
                         </thead>
@@ -171,7 +175,7 @@
                 if (!Array.isArray(users) || users.length === 0) {
                     usersBody.innerHTML = `
                         <tr>
-                            <td colspan="5" class="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">No users found.</td>
+                            <td colspan="6" class="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">No users found.</td>
                         </tr>
                     `;
                     return;
@@ -188,9 +192,22 @@
                             </span>
                         </td>
                         <td class="px-4 py-3">
-                            <button type="button" data-action="toggle-admin" data-user-id="${user._id}" data-next-admin="${!user.isAdmin}" class="rounded-lg px-3 py-1.5 text-xs font-medium ${user._id === currentUser._id ? 'cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400' : 'bg-primary/10 text-primary hover:bg-primary/15'}" ${user._id === currentUser._id ? 'disabled' : ''}>
-                                ${user.isAdmin ? 'Remove admin' : 'Make admin'}
-                            </button>
+                            <div class="flex flex-col gap-1">
+                                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${user.isSuspended ? 'bg-rose-500/15 text-rose-600 ring-1 ring-rose-500/30 dark:bg-rose-500/20 dark:text-rose-200' : 'bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500/25 dark:bg-emerald-500/15 dark:text-emerald-200'}">
+                                    ${user.isSuspended ? 'Suspended' : 'Active'}
+                                </span>
+                                ${user.isSuspended && user.suspensionReason ? `<span class="text-xs text-slate-500 dark:text-slate-400">Reason: ${user.suspensionReason}</span>` : ''}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button type="button" data-action="toggle-admin" data-user-id="${user._id}" data-user-name="${user.name ?? ''}" data-user-email="${user.email ?? ''}" data-next-admin="${!user.isAdmin}" class="rounded-lg px-3 py-1.5 text-xs font-medium ${user._id === currentUser._id ? 'cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400' : 'bg-primary/10 text-primary hover:bg-primary/15'}" ${user._id === currentUser._id ? 'disabled' : ''}>
+                                    ${user.isAdmin ? 'Remove admin' : 'Make admin'}
+                                </button>
+                                <button type="button" data-action="toggle-suspend" data-user-id="${user._id}" data-user-name="${user.name ?? ''}" data-user-email="${user.email ?? ''}" data-next-suspended="${!user.isSuspended}" class="rounded-lg px-3 py-1.5 text-xs font-medium ${user._id === currentUser._id ? 'cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400' : user.isSuspended ? 'bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-200 dark:hover:bg-emerald-500/20' : 'text-rose-600 hover:bg-rose-600/10 dark:text-rose-300 dark:hover:bg-rose-300/10'}" ${user._id === currentUser._id ? 'disabled' : ''}>
+                                    ${user.isSuspended ? 'Unsuspend' : 'Suspend'}
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `).join('');
@@ -286,27 +303,61 @@
             });
 
             usersBody.addEventListener('click', async (event) => {
-                const button = event.target.closest('[data-action="toggle-admin"]');
+                const button = event.target.closest('[data-action]');
                 if (!button) return;
 
+                const action = button.getAttribute('data-action');
                 const userId = button.getAttribute('data-user-id');
-                const nextAdmin = button.getAttribute('data-next-admin') === 'true';
                 if (!userId) return;
 
-                try {
-                    if (isApiMode && window.SHHub?.apiSetUserAdmin) {
-                        try {
-                            await window.SHHub.apiSetUserAdmin(userId, nextAdmin);
-                        } catch (error) {
-                            if (!shouldFallbackToLocal(error)) throw error;
+                if (action === 'toggle-admin') {
+                    const nextAdmin = button.getAttribute('data-next-admin') === 'true';
+                    try {
+                        if (isApiMode && window.SHHub?.apiSetUserAdmin) {
+                            try {
+                                await window.SHHub.apiSetUserAdmin(userId, nextAdmin);
+                            } catch (error) {
+                                if (!shouldFallbackToLocal(error)) throw error;
+                                window.SHHub?.setUserAdminLocal?.(userId, nextAdmin);
+                            }
+                        } else {
                             window.SHHub?.setUserAdminLocal?.(userId, nextAdmin);
                         }
-                    } else {
-                        window.SHHub?.setUserAdminLocal?.(userId, nextAdmin);
+                        await loadAdminData();
+                    } catch (error) {
+                        alert(error?.message || 'Failed to update user role.');
                     }
-                    await loadAdminData();
-                } catch (error) {
-                    alert(error?.message || 'Failed to update user role.');
+                    return;
+                }
+
+                if (action === 'toggle-suspend') {
+                    const nextSuspended = button.getAttribute('data-next-suspended') === 'true';
+                    const name = button.getAttribute('data-user-name');
+                    const email = button.getAttribute('data-user-email');
+                    const label = (name || email || 'this user').trim();
+                    let reason = '';
+                    if (nextSuspended) {
+                        reason = prompt(`Suspend ${label}? Provide a reason (optional).`, '');
+                        if (reason === null) return;
+                    } else {
+                        if (!confirm(`Unsuspend ${label}? They will be able to log in again.`)) return;
+                    }
+
+                    try {
+                        if (isApiMode && window.SHHub?.apiSetUserSuspended) {
+                            try {
+                                await window.SHHub.apiSetUserSuspended(userId, nextSuspended, reason);
+                            } catch (error) {
+                                if (!shouldFallbackToLocal(error)) throw error;
+                                window.SHHub?.setUserSuspendedLocal?.(userId, nextSuspended, reason);
+                            }
+                        } else {
+                            window.SHHub?.setUserSuspendedLocal?.(userId, nextSuspended, reason);
+                        }
+                        await loadAdminData();
+                    } catch (error) {
+                        alert(error?.message || 'Failed to update user status.');
+                    }
                 }
             });
 

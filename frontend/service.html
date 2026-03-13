@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Details - Student Hustle Hub</title>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com">
     <meta name="description" content="View service details and contact the provider on Student Hustle Hub.">
     <meta name="api-base-url" content="http://localhost:5000/api">
     <link rel="stylesheet" href="app.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="config.js"></script>
     <script defer src="app.js"></script>
     <script>
         tailwind.config = {
@@ -67,7 +70,7 @@
 
             <aside class="glass rounded-2xl p-6 shadow-sm sm:p-8">
                 <a href="#" id="provider-link" class="flex items-center gap-3 group/profile">
-                    <img id="provider-img" alt="Provider" class="h-12 w-12 rounded-2xl object-cover ring-2 ring-primary/30" src="">
+                    <img id="provider-img" alt="Provider" class="h-12 w-12 rounded-2xl object-cover ring-2 ring-primary/30" src="" loading="lazy" decoding="async" width="48" height="48">
                     <div class="min-w-0">
                         <p id="provider-name" class="truncate text-sm font-semibold text-slate-900 dark:text-white group-hover/profile:text-primary dark:group-hover/profile:text-secondary"></p>
                         <p id="provider-uni" class="truncate text-xs text-slate-500 dark:text-slate-400"></p>

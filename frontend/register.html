@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Student Hustle Hub</title>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com">
     <meta name="description" content="Create a Student Hustle Hub account to post campus services and get discovered.">
     <meta name="api-base-url" content="http://localhost:5000/api">
     <link rel="stylesheet" href="app.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="config.js"></script>
     <script defer src="app.js"></script>
     <script>
         tailwind.config = {
@@ -117,7 +120,7 @@
 
                 if (!name) return showError('Please enter your name.');
                 if (!email) return showError('Please enter your email.');
-                if (!password || password.length < 6) return showError('Please enter a password with at least 6 characters.');
+                if (!password || password.length < 8) return showError('Password must be 8 or more characters.');
                 if (!university) return showError('Please enter your university.');
                 if (!course) return showError('Please enter your course.');
 

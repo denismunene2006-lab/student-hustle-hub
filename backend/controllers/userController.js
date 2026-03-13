@@ -7,7 +7,7 @@ const User = require('../models/User');
 const getUserProfileById = asyncHandler(async (req, res) => {
   // We select only the fields that are safe to be public.
   // Exclude password, and potentially other sensitive fields.
-  const user = await User.findById(req.params.id).select('-password');
+  const user = await User.findById(req.params.id).select('-password -isSuspended -suspensionReason');
 
   if (user) {
     res.json(user);

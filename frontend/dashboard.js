@@ -10,6 +10,71 @@ document.addEventListener('DOMContentLoaded', async () => {
       || message.includes('aborterror');
   };
 
+  const readFileAsDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => resolve(String(event.target?.result ?? ''));
+      reader.onerror = () => reject(new Error('Failed to read image file'));
+      reader.readAsDataURL(file);
+    });
+
+  const loadImageFromFile = (file) =>
+    new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve(img);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load image'));
+      };
+      img.src = url;
+    });
+
+  const optimizeProfileImage = async (file) => {
+    const MAX_DIMENSION = 512;
+    const LARGE_FILE_BYTES = 300 * 1024;
+    const JPEG_QUALITY = 0.8;
+
+    if (!file || !file.type?.startsWith('image/')) {
+      throw new Error('Please select a valid image file.');
+    }
+
+    const image = await loadImageFromFile(file);
+    const width = image.naturalWidth || image.width;
+    const height = image.naturalHeight || image.height;
+    if (!width || !height) {
+      return await readFileAsDataUrl(file);
+    }
+
+    const maxSide = Math.max(width, height);
+    const scale = Math.min(1, MAX_DIMENSION / maxSide);
+    const targetWidth = Math.max(1, Math.round(width * scale));
+    const targetHeight = Math.max(1, Math.round(height * scale));
+
+    const shouldResize = scale < 1;
+    const shouldReencode = shouldResize || file.size > LARGE_FILE_BYTES;
+
+    if (!shouldReencode) {
+      return await readFileAsDataUrl(file);
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return await readFileAsDataUrl(file);
+    }
+
+    ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    return canvas.toDataURL(outputType, outputType === 'image/jpeg' ? JPEG_QUALITY : undefined);
+  };
+
   if (isApiMode && window.SHHub?.apiGetProfile) {
     try {
       currentUser = await window.SHHub.apiGetProfile();
@@ -453,19 +518,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   upload?.addEventListener('change', () => {
     const file = upload.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const nextImage = String(event.target?.result ?? '');
-      if (!nextImage) return;
+    (async () => {
       try {
+        const nextImage = await optimizeProfileImage(file);
+        if (!nextImage) return;
         currentUser = (await updateProfileData({ image: nextImage })) ?? currentUser;
         applyUserUI(currentUser);
         window.SHHub?.showToast?.('Profile photo updated', 'success');
       } catch (error) {
         window.SHHub?.showToast?.(error?.message || 'Failed to update profile image.', 'error');
+      } finally {
+        upload.value = '';
       }
-    };
-    reader.readAsDataURL(file);
+    })();
   });
 
   servicesGrid?.addEventListener('click', async (event) => {

@@ -19,6 +19,13 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'Not authorized, user not found' });
       }
 
+      if (req.user.isSuspended) {
+        const reason = String(req.user.suspensionReason ?? '').trim();
+        return res.status(403).json({
+          message: reason ? `Account suspended: ${reason}` : 'Account suspended. Contact support.',
+        });
+      }
+
       next();
     } catch (error) {
       console.error(error);
@@ -31,4 +38,12 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+const admin = (req, res, next) => {
+  if (req.user && req.user.isAdmin) {
+    next();
+  } else {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+};
+
+module.exports = { protect, admin };

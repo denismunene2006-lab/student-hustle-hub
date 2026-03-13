@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <article class="service-card card-hover group rounded-2xl p-6" style="${cardStyle}">
             <div class="flex items-start justify-between gap-3">
                 <a href="profile.html?id=${providerId}" class="flex items-center gap-3 min-w-0 group/profile">
-                    <img src="${providerImage}" alt="${providerName}" class="service-avatar h-10 w-10 rounded-full">
+                    <img src="${providerImage}" alt="${providerName}" class="service-avatar h-10 w-10 rounded-full" loading="lazy" decoding="async" width="40" height="40">
                     <div class="min-w-0">
                         <p class="truncate text-sm font-semibold text-slate-900 dark:text-white group-hover/profile:text-primary dark:group-hover/profile:text-secondary">${providerName}</p>
                         <p class="truncate text-xs text-slate-500 dark:text-slate-400">${providerUniversity}</p>

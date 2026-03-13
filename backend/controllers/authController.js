@@ -9,6 +9,7 @@ const generateToken = (id) => {
 };
 
 const normalizeEmail = (value) => String(value ?? '').trim().toLowerCase();
+const escapeRegExp = (value) => String(value ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const getAdminEmails = () =>
   String(process.env.ADMIN_EMAILS ?? '')
     .split(',')
@@ -67,6 +68,8 @@ const mapUser = (user) => ({
   bio: user.bio ?? '',
   marketMode: normalizeMarketMode(user.marketMode),
   isAdmin: Boolean(user.isAdmin),
+  isSuspended: Boolean(user.isSuspended),
+  suspensionReason: user.suspensionReason ?? '',
 });
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -77,8 +80,11 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const { name, email, password, university, course } = req.body;
+  const normalizedEmail = normalizeEmail(email);
 
-  const userExists = await User.findOne({ email });
+  const userExists = await User.findOne({
+    email: { $regex: new RegExp(`^${escapeRegExp(normalizedEmail)}$`, 'i') },
+  });
   if (userExists) {
     res.status(400);
     throw new Error('User already exists');
@@ -87,11 +93,11 @@ const registerUser = asyncHandler(async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  const shouldAdmin = isAdminEmail(email) || (await User.countDocuments()) === 0;
+  const shouldAdmin = isAdminEmail(normalizedEmail) || (await User.countDocuments()) === 0;
 
   const user = await User.create({
     name,
-    email,
+    email: normalizedEmail,
     password: hashedPassword,
     university,
     course,
@@ -123,8 +129,13 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email: normalizedEmail });
   if (user && (await bcrypt.compare(password, user.password))) {
+    if (user.isSuspended) {
+      res.status(403);
+      const reason = String(user.suspensionReason ?? '').trim();
+      throw new Error(reason ? `Account suspended: ${reason}` : 'Account suspended. Contact support.');
+    }
     clearAttempts(loginKey);
-    if (!user.isAdmin && isAdminEmail(email)) {
+    if (!user.isAdmin && isAdminEmail(normalizedEmail)) {
       user.isAdmin = true;
       await user.save();
     }
@@ -157,7 +168,10 @@ const updateMe = asyncHandler(async (req, res) => {
     }
 
     if (nextEmail !== user.email) {
-      const existing = await User.findOne({ email: nextEmail, _id: { $ne: user._id } });
+      const existing = await User.findOne({
+        email: { $regex: new RegExp(`^${escapeRegExp(nextEmail)}$`, 'i') },
+        _id: { $ne: user._id },
+      });
       if (existing) {
         res.status(400);
         throw new Error('Email already in use');

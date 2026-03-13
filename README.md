@@ -72,6 +72,41 @@ Then log out and log back in.
 
 This structure is ideal for deployment.
 
--   **Frontend:** Deploy the contents of the `frontend/` directory to a static host like Netlify, Vercel, or GitHub Pages.
--   **Backend:** Deploy the contents of the `backend/` directory to a Node.js hosting service like Render or Railway.
--   **Database:** MongoDB Atlas is recommended for a free, managed database.
+### Recommended Free Setup (Netlify + Render)
+This keeps hosting free and simple.
+
+**Backend (Render – Free Web Service)**
+1. Connect your repo on Render and choose **New → Web Service**.
+2. Set **Root Directory** to `backend`.
+3. Build command: `npm install`
+4. Start command: `npm start`
+5. Set env vars:
+   - `MONGO_URI`
+   - `JWT_SECRET`
+   - `ADMIN_EMAILS` (comma-separated)
+6. Deploy. Render free services can spin down after ~15 minutes of inactivity and resume on the next request.
+
+**Frontend (Netlify – Free)**
+1. Connect your repo on Netlify and choose **New site from Git**.
+2. Build command: *(leave empty)*
+3. Publish directory: `frontend`
+4. Deploy. A `netlify.toml` is included to simplify this.
+
+**Set API URL**
+1. Once Render gives you a URL (example: `https://your-service.onrender.com`), open:
+   - `frontend/config.js`
+2. Set:
+   ```js
+   window.SHHub_API_BASE_URL = 'https://your-service.onrender.com/api';
+   ```
+3. Commit and redeploy the frontend.
+
+**Database (MongoDB Atlas)**
+Ensure your MongoDB Atlas network access allows your Render service to connect. The quickest option is `0.0.0.0/0` (then use a strong password).
+
+---
+
+Alternative options:
+- **Frontend:** Vercel or GitHub Pages
+- **Backend:** Railway or Render
+- **Database:** MongoDB Atlas

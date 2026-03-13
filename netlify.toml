@@ -1,0 +1,5 @@
+[build]
+  publish = "frontend"
+  command = ""
+
+# Optional: prevent Netlify from messing with SPA routing (not needed here)
