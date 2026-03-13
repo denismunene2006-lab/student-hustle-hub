@@ -10,6 +10,9 @@ const connectDB = require('./config/db');
 // Debugging: Check if MONGO_URI is loaded (don't log the actual secret)
 console.log(`Environment: ${process.env.NODE_ENV}`);
 console.log(`MONGO_URI defined: ${!!process.env.MONGO_URI}`);
+// For advanced debugging on Render, log all available environment variable keys.
+// This helps spot typos (e.g., MONGODB_URI vs MONGO_URI).
+console.log('Available process.env keys:', Object.keys(process.env));
 
 // Connect to MongoDB 
 connectDB();
