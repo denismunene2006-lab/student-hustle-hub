@@ -36,17 +36,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Debugging Route: Check environment variables
-// Visit /debug-env to see if MONGO_URI is actually loaded
-app.get('/debug-env', (req, res) => {
-  res.json({
-    message: 'Environment Debug Info',
-    mongoUriExists: !!process.env.MONGO_URI,
-    nodeEnv: process.env.NODE_ENV,
-    availableKeys: Object.keys(process.env)
-  });
-});
-
 // Database test route
 app.get("/test-db", async (req, res) => {
   try {
