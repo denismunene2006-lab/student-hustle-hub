@@ -2,12 +2,6 @@ const dotenv = require('dotenv');
 // Load environment variables immediately, before other imports
 dotenv.config();
 
-console.log('--- DIAGNOSTIC TEST ---');
-console.log('CANARY_TEST value:', process.env.CANARY_TEST);
-console.log('MONGO_URI value exists:', !!process.env.MONGO_URI);
-console.log('All available keys:', Object.keys(process.env));
-console.log('--- END DIAGNOSTIC TEST ---');
-
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
