@@ -1,11 +1,15 @@
-const express = require('express');
 const dotenv = require('dotenv');
+// Load environment variables immediately, before other imports
+dotenv.config();
+
+const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
-// Load environment variables
-dotenv.config();
+// Debugging: Check if MONGO_URI is loaded (don't log the actual secret)
+console.log(`Environment: ${process.env.NODE_ENV}`);
+console.log(`MONGO_URI defined: ${!!process.env.MONGO_URI}`);
 
 // Connect to MongoDB 
 connectDB();
