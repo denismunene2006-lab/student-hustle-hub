@@ -2,6 +2,9 @@ const dotenv = require('dotenv');
 // Load environment variables immediately, before other imports
 dotenv.config();
 
+// DEBUG: Log the KEYS (not values) of all env vars to check for typos in Render
+console.log('DEBUG: Available Env Keys on Server:', Object.keys(process.env));
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
