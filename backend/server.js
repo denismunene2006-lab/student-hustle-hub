@@ -5,16 +5,24 @@ dotenv.config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const connectDB = require('./config/db');
 
-// Debugging: Check if MONGO_URI is loaded (don't log the actual secret)
-console.log(`Environment: ${process.env.NODE_ENV}`);
-console.log(`MONGO_URI defined: ${!!process.env.MONGO_URI}`);
-// For advanced debugging on Render, log all available environment variable keys.
-// This helps spot typos (e.g., MONGODB_URI vs MONGO_URI).
-console.log('Available process.env keys:', Object.keys(process.env));
+// Connect to MongoDB (Inlined for Debugging)
+const connectDB = async () => {
+  try {
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+    // Log all keys to verify spelling (e.g., MONGODB_URI vs MONGO_URI)
+    console.log('DEBUG: Available Env Keys:', Object.keys(process.env));
 
-// Connect to MongoDB 
+    if (!process.env.MONGO_URI) {
+      throw new Error('MONGO_URI is undefined. Check Render Dashboard settings.');
+    }
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(`MongoDB Connection Error: ${error.message}`);
+    process.exit(1);
+  }
+};
 connectDB();
 
 const app = express();
