@@ -8,7 +8,7 @@
   const HIDDEN_DEMO_REVIEWS_KEY = 'shhub_hidden_demo_reviews';
   const FAVORITES_KEY = 'shhub_favorites';
   const API_BASE_KEY = 'shhub_api_base_url';
-  const API_REQUEST_TIMEOUT_MS = 12000;
+  const API_REQUEST_TIMEOUT_MS = 30000;
   const ADMIN_EMAILS = [];
 
   const storageGet = (key) => {

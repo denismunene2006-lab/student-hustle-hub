@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const listingFilterButtons = Array.from(document.querySelectorAll('[data-listing-filter]'));
     let activeListingFilter = 'all';
 
+    const BROWSE_CACHE_KEY = 'shhub_browse_cache';
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
     // Security: Escape HTML to prevent XSS attacks
@@ -143,24 +144,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const keyword = searchInput?.value.trim().toLowerCase() ?? '';
         const category = categorySelect?.value ?? '';
 
+        // Performance: Load from cache first for an "instant" feel
+        const cachedData = localStorage.getItem(BROWSE_CACHE_KEY);
+        if (cachedData && !keyword && !category && activeListingFilter === 'all') {
+            try {
+                const parsed = JSON.parse(cachedData);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    servicesGrid.innerHTML = parsed.map(renderServiceCard).join('');
+                    window.SHHub?.refreshIcons?.();
+                }
+            } catch (e) { console.error("Cache parse failed", e); }
+        }
+
         // Modern Skeleton Loading
-        const skeletonCard = `
-            <div class="glass rounded-2xl p-6 animate-pulse">
-                <div class="flex items-center gap-3">
-                    <div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700"></div>
-                    <div class="flex-1 space-y-2">
-                        <div class="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700"></div>
-                        <div class="h-2 w-16 rounded bg-slate-200 dark:bg-slate-700"></div>
+        if (!servicesGrid.innerHTML || servicesGrid.innerHTML.includes('Loading')) {
+            const skeletonCard = `
+                <div class="glass rounded-2xl p-6 animate-pulse">
+                    <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700"></div>
+                            <div class="h-2 w-16 rounded bg-slate-200 dark:bg-slate-700"></div>
+                        </div>
                     </div>
+                    <div class="mt-4 space-y-2">
+                        <div class="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-700"></div>
+                        <div class="h-3 w-full rounded bg-slate-200 dark:bg-slate-700"></div>
+                    </div>
+                    <div class="mt-5 border-t border-slate-200/50 pt-4 dark:border-slate-700/50 h-8 rounded bg-slate-200 dark:bg-slate-700"></div>
                 </div>
-                <div class="mt-4 space-y-2">
-                    <div class="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-700"></div>
-                    <div class="h-3 w-full rounded bg-slate-200 dark:bg-slate-700"></div>
-                </div>
-                <div class="mt-5 border-t border-slate-200/50 pt-4 dark:border-slate-700/50 h-8 rounded bg-slate-200 dark:bg-slate-700"></div>
-            </div>
-        `;
-        servicesGrid.innerHTML = Array(6).fill(skeletonCard).join('');
+            `;
+            servicesGrid.innerHTML = Array(6).fill(skeletonCard).join('');
+        }
+
         // await sleep(50); // Removed artificial delay for faster local loading
         updateUrlWithFilters();
 
@@ -172,11 +188,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     category,
                     listingType: activeListingFilter === 'all' ? '' : activeListingFilter,
                 });
+                
+                // Update cache if this was a general browse (no filters)
+                if (!keyword && !category && activeListingFilter === 'all') {
+                    localStorage.setItem(BROWSE_CACHE_KEY, JSON.stringify(services));
+                }
             } catch (error) {
                 // Log the actual error to the console for debugging
                 console.error("Failed to fetch services from API:", error);
-                services = []; // On error, show no services
-                window.SHHub?.showToast?.('Could not connect to the server.', 'error');
+                
+                const isTimeout = error.message?.toLowerCase().includes('timeout');
+                const msg = isTimeout ? 'Server is waking up, please wait a moment...' : 'Could not connect to the server.';
+                window.SHHub?.showToast?.(msg, isTimeout ? 'neutral' : 'error');
+                return; // Stop execution to keep cached data visible if available
             }
         } else {
             services = []; // If not in API mode, show no services
