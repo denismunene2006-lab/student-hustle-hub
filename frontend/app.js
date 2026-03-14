@@ -152,7 +152,7 @@
     const numStr = String(number ?? '').trim();
     if (!numStr) return '';
     if (numStr.startsWith('+254')) return numStr;
-    if (numStr.startsWith('254')) return `+${numStr}`;
+    if (numStr.startsWith('254') && numStr.length === 12) return `+${numStr}`;
     return `+254${numStr.startsWith('0') ? numStr.slice(1) : numStr}`;
   };
 
