@@ -148,6 +148,14 @@
     return added;
   };
 
+    const ensureCountryCode = (number) => {
+    const numStr = String(number ?? '').trim();
+    if (!numStr) return '';
+    if (numStr.startsWith('+254')) return numStr;
+    if (numStr.startsWith('254')) return `+${numStr}`;
+    return `+254${numStr.startsWith('0') ? numStr.slice(1) : numStr}`;
+  };
+
   const normalizeUserPayload = (user, existing = {}) => {
     const email = normalizeEmail(user?.email ?? existing?.email ?? '');
     return {
@@ -159,7 +167,7 @@
       university: String(user?.university ?? existing?.university ?? 'Campus University').trim(),
       course: String(user?.course ?? existing?.course ?? 'N/A').trim(),
       image: String(user?.image ?? existing?.image ?? '').trim(),
-      whatsappNumber: String(user?.whatsappNumber ?? existing?.whatsappNumber ?? '').trim(),
+      whatsappNumber: ensureCountryCode(user?.whatsappNumber ?? existing?.whatsappNumber ?? ''),
       bio: String(user?.bio ?? existing?.bio ?? '').trim(),
       marketMode: normalizeListingType(user?.marketMode ?? existing?.marketMode),
       isAdmin: Boolean(user?.isAdmin ?? existing?.isAdmin ?? isAdminEmail(email)),
