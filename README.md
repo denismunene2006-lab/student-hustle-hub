@@ -1,6 +1,6 @@
 # Student Hustle Hub
 
-Student Hustle Hub is a modern campus marketplace where students can offer services, request help, and build trust through ratings and reviews.
+Student Hustle Hub is a full-stack campus marketplace allowing students to seamlessly switch between buying and selling services. It manages the complete order lifecycle—from request to delivery—and builds community trust through a robust rating and review system.
 
 ## Highlights
 - Student accounts with editable profiles
@@ -66,7 +66,7 @@ Then log out and log back in.
 ### Frontend
 1.  Open the `frontend/index.html` file in your browser using a live server extension (like VS Code's "Live Server").
 2.  The site will open, likely at `http://127.0.0.1:5500`.
-3.  Navigate to the settings page (`settings.html`) and set the API URL to `http://localhost:5000/api` to connect to your local backend.
+3.  The app will automatically connect to your local backend. If you need to change the API URL, you can do so on the `settings.html` page.
 
 ## Deploy
 

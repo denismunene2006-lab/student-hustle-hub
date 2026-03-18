@@ -47,7 +47,15 @@
     const globalValue = globalThis.SHHub_API_BASE_URL;
     const savedValue = storageGet(API_BASE_KEY);
     const explicit = normalizeUrl(savedValue || globalValue || metaValue || '');
-    return explicit;
+    if (explicit) return explicit;
+
+    // Add a sensible default for local development when running from a live server
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocal) {
+      return 'http://localhost:5000/api';
+    }
+
+    return '';
   };
 
   const setApiBaseUrl = (value) => {
