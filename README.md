@@ -2,6 +2,8 @@
 
 Student Hustle Hub is a modern campus marketplace where students can offer services, request help, and build trust through ratings and reviews.
 
+ **link**:https://student-hustle-hub.vercel.app
+ 
 ## Highlights
 - Student accounts with editable profiles
 - Buyer/Seller mode switch per user
