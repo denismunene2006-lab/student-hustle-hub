@@ -75,7 +75,7 @@
                     <div class="h-px flex-1 bg-slate-200/80 dark:bg-slate-700/70"></div>
                 </div>
 
-                <div id="google-signup-button" class="flex justify-center"></div>
+                <div id="google-signup-button" class="flex w-full justify-center"></div>
 
                 <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
                     <i data-lucide="sparkles" class="h-4 w-4"></i>
@@ -154,6 +154,10 @@
                     return;
                 }
 
+                const availableWidth = googleButtonHost.parentElement?.clientWidth || googleButtonHost.clientWidth || window.innerWidth;
+                const buttonWidth = Math.max(220, Math.min(360, Math.floor(availableWidth)));
+                const buttonSize = buttonWidth < 300 ? 'medium' : 'large';
+
                 window.google.accounts.id.initialize({
                     client_id: googleClientId,
                     callback: async (response) => {
@@ -181,14 +185,15 @@
                 googleButtonHost.innerHTML = '';
                 window.google.accounts.id.renderButton(googleButtonHost, {
                     theme: 'outline',
-                    size: 'large',
+                    size: buttonSize,
                     text: 'signup_with',
                     shape: 'pill',
-                    width: 360,
+                    width: buttonWidth,
                 });
             };
 
             renderGoogleButton();
+            window.addEventListener('resize', renderGoogleButton);
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
