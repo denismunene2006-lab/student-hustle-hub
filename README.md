@@ -11,7 +11,9 @@ Student Hustle Hub is a full-stack campus marketplace allowing students to seaml
 - Service posting and service editing
 - Ratings and reviews for each student provider
 - Admin dashboard with usage stats and moderation actions
-- Kenyan currency support (KES) and WhatsApp support button
+- Kenyan currency support (KES) and WhatsApp links using `+254...` numbers
+- Mobile-friendly fixed navbar and floating footer
+- Browser-side public API caching plus indexed MongoDB query paths
 
 ## Project Structure
 
@@ -78,6 +80,18 @@ Then log out and log back in.
 1.  Open the `frontend/index.html` file in your browser using a live server extension (like VS Code's "Live Server").
 2.  The site will open, likely at `http://127.0.0.1:5500`.
 3.  The app will automatically connect to your local backend. If you need to change the API URL, you can do so on the `settings.html` page.
+
+## Performance Notes
+
+The app includes a few lightweight speed optimizations that do not change the UI:
+
+- Public frontend API reads such as services, service details, public profiles, and reviews use a short browser cache for faster repeat loads.
+- Public API responses send short private cache headers, so browsers can reuse recent data without exposing it through shared caches.
+- MongoDB models declare indexes for common service, review, job, report, and admin query patterns.
+- Read-heavy backend list/detail queries use lean MongoDB results to reduce server-side overhead.
+- After create, update, delete, profile, review, or admin moderation actions, the frontend clears cached public data so fresh content loads.
+
+For production databases with a lot of existing data, confirm the declared indexes exist in MongoDB Atlas. If your production setup disables automatic index creation, create the equivalent indexes manually.
 
 ## Deploy
 

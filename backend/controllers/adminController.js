@@ -65,7 +65,10 @@ const getAdminStats = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/users
 // @access  Admin
 const getAdminUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select('-password').sort({ updatedAt: -1, createdAt: -1 });
+  const users = await User.find()
+    .select('-password')
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .lean();
   res.json(users.map(mapUser));
 });
 
@@ -148,7 +151,7 @@ const deleteUser = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 
-  const services = await Service.find({ user: user._id }).select('_id');
+  const services = await Service.find({ user: user._id }).select('_id').lean();
   const serviceIds = services.map((service) => service._id);
 
   const serviceFilter = serviceIds.length ? { service: { $in: serviceIds } } : null;
@@ -189,7 +192,8 @@ const deleteUser = asyncHandler(async (req, res) => {
 const getAdminServices = asyncHandler(async (req, res) => {
   const services = await Service.find()
     .populate('user', 'name email university image')
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
   res.json(services);
 });
 
@@ -220,7 +224,8 @@ const getAdminReviews = asyncHandler(async (req, res) => {
   const reviews = await Review.find()
     .populate('reviewerUserId', 'name image')
     .populate('reviewedUserId', 'name image')
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
   const formatted = reviews.map((review) => ({
     _id: review._id,

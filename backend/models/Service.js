@@ -40,4 +40,8 @@ const serviceSchema = new mongoose.Schema(
   }
 );
 
+serviceSchema.index({ createdAt: -1 });
+serviceSchema.index({ user: 1, createdAt: -1 });
+serviceSchema.index({ category: 1, listingType: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Service', serviceSchema);

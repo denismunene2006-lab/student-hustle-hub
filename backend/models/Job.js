@@ -40,4 +40,8 @@ const jobSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+jobSchema.index({ buyer: 1, updatedAt: -1 });
+jobSchema.index({ seller: 1, updatedAt: -1 });
+jobSchema.index({ service: 1, buyer: 1, seller: 1, status: 1 });
+
 module.exports = mongoose.model('Job', jobSchema);

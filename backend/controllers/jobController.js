@@ -4,11 +4,13 @@ const Service = require('../models/Service');
 
 const STATUS_FLOW = ['requested', 'accepted', 'in_progress', 'delivered', 'completed', 'cancelled', 'disputed'];
 
-const buildJobPopulate = (query) =>
-  query
+const buildJobPopulate = (query, useLean = false) => {
+  const populatedQuery = query
     .populate('service', 'title category price listingType')
     .populate('buyer', 'name email university image')
     .populate('seller', 'name email university image');
+  return useLean ? populatedQuery.lean() : populatedQuery;
+};
 
 const roleForUser = (job, userId) => {
   if (job.buyer.toString() === userId.toString()) return 'buyer';
@@ -84,7 +86,7 @@ const createJob = asyncHandler(async (req, res) => {
   });
 
   if (existing) {
-    const populatedExisting = await buildJobPopulate(Job.findById(existing._id));
+    const populatedExisting = await buildJobPopulate(Job.findById(existing._id), true);
     return res.status(200).json(populatedExisting);
   }
 
@@ -103,7 +105,7 @@ const createJob = asyncHandler(async (req, res) => {
     lastActionBy: req.user._id,
   });
 
-  const populatedJob = await buildJobPopulate(Job.findById(job._id));
+  const populatedJob = await buildJobPopulate(Job.findById(job._id), true);
   res.status(201).json(populatedJob);
 });
 
@@ -130,7 +132,8 @@ const getMyJobs = asyncHandler(async (req, res) => {
   }
 
   const jobs = await buildJobPopulate(
-    Job.find(query).sort({ updatedAt: -1, createdAt: -1 })
+    Job.find(query).sort({ updatedAt: -1, createdAt: -1 }),
+    true
   );
 
   res.status(200).json(jobs);
@@ -169,7 +172,7 @@ const updateJobStatus = asyncHandler(async (req, res) => {
   job.lastActionBy = req.user._id;
   await job.save();
 
-  const populatedJob = await buildJobPopulate(Job.findById(job._id));
+  const populatedJob = await buildJobPopulate(Job.findById(job._id), true);
   res.status(200).json(populatedJob);
 });
 

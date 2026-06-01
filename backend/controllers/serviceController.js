@@ -3,6 +3,10 @@ const Service = require('../models/Service');
 const User = require('../models/User');
 const { normalizeKenyanPhone } = require('../utils/phone');
 
+const setPublicCache = (res, maxAgeSeconds = 30) => {
+    res.set('Cache-Control', `private, max-age=${maxAgeSeconds}, stale-while-revalidate=${maxAgeSeconds * 4}`);
+};
+
 // @desc    Get all services (public, with filters)
 // @route   GET /api/services
 // @access  Public
@@ -29,8 +33,10 @@ const getServices = asyncHandler(async (req, res) => {
 
     const services = await Service.find(query)
       .populate('user', 'name university image _id email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
+    setPublicCache(res, 30);
     res.status(200).json(services);
 });
 
@@ -41,13 +47,14 @@ const getServiceById = asyncHandler(async (req, res) => {
     const service = await Service.findById(req.params.id).populate(
       'user',
       'name university image _id email'
-    );
+    ).lean();
 
     if (!service) {
       res.status(404);
       throw new Error('Service not found');
     }
 
+    setPublicCache(res, 60);
     res.status(200).json(service);
 });
 
@@ -81,7 +88,7 @@ const createService = asyncHandler(async (req, res) => {
     const populatedService = await Service.findById(service._id).populate(
       'user',
       'name university image _id email'
-    );
+    ).lean();
 
     res.status(201).json(populatedService);
 });
@@ -91,7 +98,8 @@ const createService = asyncHandler(async (req, res) => {
 // @access  Private
 const getMyServices = asyncHandler(async (req, res) => {
     const services = await Service.find({ user: req.user._id })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.status(200).json(services);
 });

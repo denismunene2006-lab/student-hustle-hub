@@ -2,6 +2,10 @@ const asyncHandler = require('express-async-handler');
 const Review = require('../models/reviewModel');
 const Service = require('../models/Service');
 
+const setPublicCache = (res, maxAgeSeconds = 30) => {
+  res.set('Cache-Control', `private, max-age=${maxAgeSeconds}, stale-while-revalidate=${maxAgeSeconds * 4}`);
+};
+
 // @desc    Create a new review
 // @route   POST /api/reviews
 // @access  Private
@@ -58,7 +62,8 @@ const createReview = asyncHandler(async (req, res) => {
 const getReviewsForUser = asyncHandler(async (req, res) => {
   const reviews = await Review.find({ reviewedUserId: req.params.id })
     .populate('reviewerUserId', 'name image')
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
   // Map to the format the frontend expects
   const formattedReviews = reviews.map(r => ({
@@ -66,10 +71,11 @@ const getReviewsForUser = asyncHandler(async (req, res) => {
     rating: r.rating,
     comment: r.comment,
     createdAt: r.createdAt,
-    reviewerName: r.reviewerUserId.name,
-    reviewerUserId: r.reviewerUserId._id,
+    reviewerName: r.reviewerUserId?.name ?? 'Student',
+    reviewerUserId: r.reviewerUserId?._id,
   }));
 
+  setPublicCache(res, 30);
   res.json(formattedReviews);
 });
 

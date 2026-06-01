@@ -10,7 +10,10 @@
   const API_BASE_KEY = 'shhub_api_base_url';
   const GOOGLE_CLIENT_KEY = 'shhub_google_client_id';
   const API_REQUEST_TIMEOUT_MS = 30000;
+  const PUBLIC_API_CACHE_PREFIX = 'shhub_public_api_cache:';
+  const PUBLIC_API_CACHE_TTL_MS = 45 * 1000;
   const ADMIN_EMAILS = [];
+  const apiPendingRequests = new Map();
 
   const storageGet = (key) => {
     try {
@@ -316,13 +319,50 @@
     return fallback;
   };
 
+  const getPublicApiCacheKey = (baseUrl, path) => `${PUBLIC_API_CACHE_PREFIX}${baseUrl}${path}`;
+
+  const readPublicApiCache = (cacheKey, ttlMs = PUBLIC_API_CACHE_TTL_MS) => {
+    const entry = safeJsonParse(storageGet(cacheKey));
+    if (!entry || typeof entry !== 'object' || !('payload' in entry)) return null;
+    const cachedAt = Number(entry.cachedAt ?? 0);
+    if (!Number.isFinite(cachedAt) || cachedAt <= 0) return null;
+    if (Number.isFinite(ttlMs) && Date.now() - cachedAt > ttlMs) return null;
+    return entry.payload;
+  };
+
+  const writePublicApiCache = (cacheKey, payload) => {
+    storageSet(cacheKey, JSON.stringify({ cachedAt: Date.now(), payload }));
+  };
+
+  const clearPublicApiCache = () => {
+    storageRemove('shhub_browse_cache');
+    try {
+      for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+        const key = localStorage.key(index);
+        if (key?.startsWith(PUBLIC_API_CACHE_PREFIX)) localStorage.removeItem(key);
+      }
+    } catch {
+      // Ignore storage cleanup failures; fresh network data will still be requested.
+    }
+  };
+
   const apiRequest = async (path, options = {}) => {
     const baseUrl = getApiBaseUrl();
     if (!baseUrl) throw new Error('API base URL is not configured');
 
-    const method = options.method ?? 'GET';
+    const method = String(options.method ?? 'GET').toUpperCase();
     const body = options.body;
     const requireAuthHeader = options.auth !== false;
+    const cacheTtlMs = Number(options.cacheTtlMs ?? 0);
+    const canUsePublicCache = method === 'GET' && !requireAuthHeader && cacheTtlMs > 0;
+    const cacheKey = canUsePublicCache ? getPublicApiCacheKey(baseUrl, path) : '';
+
+    if (canUsePublicCache) {
+      const cachedPayload = readPublicApiCache(cacheKey, cacheTtlMs);
+      if (cachedPayload !== null) return cachedPayload;
+      const pendingRequest = apiPendingRequests.get(cacheKey);
+      if (pendingRequest) return pendingRequest;
+    }
 
     const headers = {};
     if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -332,32 +372,43 @@
       if (token) headers.Authorization = `Bearer ${token}`;
     }
 
-    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const timeoutId = controller ? setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS) : null;
+    const requestPromise = (async () => {
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS) : null;
 
-    try {
-      const response = await fetch(`${baseUrl}${path}`, {
-        method,
-        headers,
-        body: body === undefined ? undefined : JSON.stringify(body),
-        signal: controller?.signal,
-      });
+      try {
+        const response = await fetch(`${baseUrl}${path}`, {
+          method,
+          headers,
+          body: body === undefined ? undefined : JSON.stringify(body),
+          signal: controller?.signal,
+        });
 
-      const payload = await parseApiResponse(response);
-      if (!response.ok) {
-        const fallback = `Request failed (${response.status})`;
-        throw new Error(getApiErrorMessage(payload, fallback));
+        const payload = await parseApiResponse(response);
+        if (!response.ok) {
+          const fallback = `Request failed (${response.status})`;
+          throw new Error(getApiErrorMessage(payload, fallback));
+        }
+
+        if (canUsePublicCache) writePublicApiCache(cacheKey, payload);
+        return payload;
+      } catch (error) {
+        if (canUsePublicCache) {
+          const stalePayload = readPublicApiCache(cacheKey, Number.POSITIVE_INFINITY);
+          if (stalePayload !== null) return stalePayload;
+        }
+        if (error?.name === 'AbortError') {
+          throw new Error(`Request timeout after ${Math.round(API_REQUEST_TIMEOUT_MS / 1000)} seconds`);
+        }
+        throw error;
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+        if (canUsePublicCache) apiPendingRequests.delete(cacheKey);
       }
+    })();
 
-      return payload;
-    } catch (error) {
-      if (error?.name === 'AbortError') {
-        throw new Error(`Request timeout after ${Math.round(API_REQUEST_TIMEOUT_MS / 1000)} seconds`);
-      }
-      throw error;
-    } finally {
-      if (timeoutId) clearTimeout(timeoutId);
-    }
+    if (canUsePublicCache) apiPendingRequests.set(cacheKey, requestPromise);
+    return requestPromise;
   };
 
   const formatKES = (value) => {
@@ -873,6 +924,7 @@
       method: 'PUT',
       body,
     });
+    clearPublicApiCache();
     return mergeAndSetUser(data);
   };
 
@@ -885,7 +937,7 @@
 
   const apiGetUserById = async (id) => {
     if (!id) throw new Error('User ID is required');
-    return apiRequest(`/users/${encodeURIComponent(id)}`, { auth: false });
+    return apiRequest(`/users/${encodeURIComponent(id)}`, { auth: false, cacheTtlMs: PUBLIC_API_CACHE_TTL_MS });
   };
 
   const buildQueryString = (params) => {
@@ -900,12 +952,12 @@
 
   const apiGetServices = async (filters = {}) => {
     const query = buildQueryString(filters);
-    return apiRequest(`/services${query}`, { auth: false });
+    return apiRequest(`/services${query}`, { auth: false, cacheTtlMs: PUBLIC_API_CACHE_TTL_MS });
   };
 
   const apiGetServiceById = async (id) => {
     if (!id) throw new Error('Service ID is required');
-    return apiRequest(`/services/${encodeURIComponent(id)}`, { auth: false });
+    return apiRequest(`/services/${encodeURIComponent(id)}`, { auth: false, cacheTtlMs: PUBLIC_API_CACHE_TTL_MS });
   };
 
   const apiGetMyServices = async () => apiRequest('/services/my-services');
@@ -915,10 +967,12 @@
       ...(data ?? {}),
       contactInfo: requireKenyanPhone(data?.contactInfo),
     };
-    return apiRequest('/services', {
+    const createdService = await apiRequest('/services', {
       method: 'POST',
       body,
     });
+    clearPublicApiCache();
+    return createdService;
   };
 
   const apiUpdateService = async (id, updates) => {
@@ -927,10 +981,12 @@
     if (Object.prototype.hasOwnProperty.call(body, 'contactInfo')) {
       body.contactInfo = requireKenyanPhone(body.contactInfo);
     }
-    return apiRequest(`/services/${encodeURIComponent(id)}`, {
+    const updatedService = await apiRequest(`/services/${encodeURIComponent(id)}`, {
       method: 'PUT',
       body,
     });
+    clearPublicApiCache();
+    return updatedService;
   };
 
   const apiDeleteService = async (id) => {
@@ -938,19 +994,22 @@
     await apiRequest(`/services/${encodeURIComponent(id)}`, {
       method: 'DELETE',
     });
+    clearPublicApiCache();
     return true;
   };
 
   const apiGetReviewsForUser = async (studentId) => {
     if (!studentId) throw new Error('Student ID is required');
-    return apiRequest(`/reviews/user/${encodeURIComponent(studentId)}`, { auth: false });
+    return apiRequest(`/reviews/user/${encodeURIComponent(studentId)}`, { auth: false, cacheTtlMs: PUBLIC_API_CACHE_TTL_MS });
   };
 
   const apiCreateReview = async (payload) => {
-    return apiRequest('/reviews', {
+    const review = await apiRequest('/reviews', {
       method: 'POST',
       body: payload,
     });
+    clearPublicApiCache();
+    return review;
   };
 
   const apiDeleteReview = async (reviewId) => {
@@ -958,6 +1017,7 @@
     await apiRequest(`/reviews/${encodeURIComponent(reviewId)}`, {
       method: 'DELETE',
     });
+    clearPublicApiCache();
     return true;
   };
 
@@ -995,18 +1055,22 @@
 
   const apiSetUserAdmin = async (userId, enabled) => {
     if (!userId) throw new Error('User ID is required');
-    return apiRequest(`/admin/users/${encodeURIComponent(userId)}/role`, {
+    const user = await apiRequest(`/admin/users/${encodeURIComponent(userId)}/role`, {
       method: 'PUT',
       body: { isAdmin: Boolean(enabled) },
     });
+    clearPublicApiCache();
+    return user;
   };
 
   const apiSetUserSuspended = async (userId, enabled, reason = '') => {
     if (!userId) throw new Error('User ID is required');
-    return apiRequest(`/admin/users/${encodeURIComponent(userId)}/suspend`, {
+    const user = await apiRequest(`/admin/users/${encodeURIComponent(userId)}/suspend`, {
       method: 'PUT',
       body: { isSuspended: Boolean(enabled), reason: String(reason ?? '').trim() },
     });
+    clearPublicApiCache();
+    return user;
   };
 
   const apiAdminDeleteService = async (serviceId) => {
@@ -1014,6 +1078,7 @@
     await apiRequest(`/admin/services/${encodeURIComponent(serviceId)}`, {
       method: 'DELETE',
     });
+    clearPublicApiCache();
     return true;
   };
 
@@ -1022,6 +1087,7 @@
     await apiRequest(`/admin/users/${encodeURIComponent(userId)}`, {
       method: 'DELETE',
     });
+    clearPublicApiCache();
     return true;
   };
 
@@ -1030,6 +1096,7 @@
     await apiRequest(`/admin/reviews/${encodeURIComponent(reviewId)}`, {
       method: 'DELETE',
     });
+    clearPublicApiCache();
     return true;
   };
 
