@@ -92,8 +92,8 @@
                     </div>
 
                     <div>
-                        <label for="contactInfo" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Contact info</label>
-                        <input id="contactInfo" type="text" required class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="WhatsApp number e.g. 0712345678">
+                        <label for="contactInfo" class="block text-sm font-medium text-slate-700 dark:text-slate-200">WhatsApp number</label>
+                        <input id="contactInfo" type="tel" inputmode="tel" autocomplete="tel" required class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="+254712345678">
                     </div>
                 </div>
 
@@ -180,7 +180,7 @@
             });
 
             if (!contactInput.value) {
-                contactInput.value = user.whatsappNumber ?? '';
+                contactInput.value = window.SHHub?.normalizeKenyanPhone?.(user.whatsappNumber) || '';
             }
             applyListingMode(user.marketMode ?? 'seller');
 
@@ -188,13 +188,19 @@
                 e.preventDefault();
                 errorEl.classList.add('hidden');
 
+                const normalizedContact = window.SHHub?.normalizeKenyanPhone?.(document.getElementById('contactInfo').value) || '';
+                if (!normalizedContact) {
+                    showError('Enter a Kenyan WhatsApp number like +254712345678.');
+                    return;
+                }
+
                 const payload = {
                     title: document.getElementById('title').value,
                     description: document.getElementById('description').value,
                     category: document.getElementById('category').value,
                     listingType: listingTypeInput.value,
                     price: document.getElementById('price').value,
-                    contactInfo: document.getElementById('contactInfo').value,
+                    contactInfo: normalizedContact,
                 };
 
                 try {

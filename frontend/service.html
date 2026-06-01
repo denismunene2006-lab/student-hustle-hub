@@ -242,7 +242,8 @@
             const providerId = String(provider._id ?? '');
             document.getElementById('provider-link').href = `profile.html?id=${providerId}`;
 
-            const contact = String(data.contactInfo ?? '').trim();
+            const rawContact = String(data.contactInfo ?? '').trim();
+            const contact = window.SHHub?.normalizeKenyanPhone?.(rawContact) || rawContact;
             const contactEl = document.getElementById('contact');
             contactEl.innerText = contact || '-';
 
@@ -252,8 +253,8 @@
             }
 
             const whatsappBtn = document.getElementById('whatsapp-btn');
-            const waNumber = contact.replace(/[^\d]/g, '');
-            if (waNumber.length >= 8) {
+            const waNumber = window.SHHub?.toWhatsAppNumber?.(contact) || '';
+            if (waNumber) {
                 const providerName = provider.name ?? 'Student';
                 const message = listingType === 'buyer'
                     ? `Hi ${providerName}, I can help with your request: ${data.title}`

@@ -4,6 +4,7 @@ const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { OAuth2Client } = require('google-auth-library');
+const { normalizeKenyanPhone } = require('../utils/phone');
 
 const DEFAULT_GOOGLE_CLIENT_ID = '947039282232-c3t04h5tuehfqi5h8psjqa12rtd0igt6.apps.googleusercontent.com';
 const googleClientId = String(process.env.GOOGLE_CLIENT_ID ?? DEFAULT_GOOGLE_CLIENT_ID).trim();
@@ -23,7 +24,6 @@ const getAdminEmails = () =>
 const isAdminEmail = (email) => getAdminEmails().includes(normalizeEmail(email));
 
 const normalizeMarketMode = (value) => (value === 'buyer' ? 'buyer' : 'seller');
-
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_MAX_ATTEMPTS = 5;
 const LOGIN_LOCK_MS = 15 * 60 * 1000;
@@ -70,7 +70,7 @@ const mapUser = (user) => ({
   university: user.university,
   course: user.course,
   image: user.image ?? '',
-  whatsappNumber: user.whatsappNumber ?? '',
+  whatsappNumber: normalizeKenyanPhone(user.whatsappNumber) || '',
   bio: user.bio ?? '',
   marketMode: normalizeMarketMode(user.marketMode),
   isAdmin: Boolean(user.isAdmin),
@@ -306,7 +306,14 @@ const updateMe = asyncHandler(async (req, res) => {
     user.university = String(req.body?.university ?? user.university).trim();
     user.course = String(req.body?.course ?? user.course).trim();
     user.image = String(req.body?.image ?? user.image ?? '').trim();
-    user.whatsappNumber = String(req.body?.whatsappNumber ?? user.whatsappNumber ?? '').trim();
+    const hasWhatsappNumber = Object.prototype.hasOwnProperty.call(req.body, 'whatsappNumber');
+    const whatsappInput = hasWhatsappNumber ? req.body.whatsappNumber : user.whatsappNumber ?? '';
+    const normalizedWhatsapp = normalizeKenyanPhone(whatsappInput);
+    if (hasWhatsappNumber && String(whatsappInput).trim() && !normalizedWhatsapp) {
+      res.status(400);
+      throw new Error('Enter a Kenyan WhatsApp number like +254712345678');
+    }
+    user.whatsappNumber = normalizedWhatsapp;
     user.bio = String(req.body?.bio ?? user.bio ?? '').trim();
     user.marketMode = normalizeMarketMode(req.body?.marketMode ?? user.marketMode);
 

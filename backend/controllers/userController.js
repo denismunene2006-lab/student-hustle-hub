@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
+const { normalizeKenyanPhone } = require('../utils/phone');
 
 // @desc    Get public user profile by ID
 // @route   GET /api/users/:id
@@ -10,7 +11,9 @@ const getUserProfileById = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id).select('-password -isSuspended -suspensionReason');
 
   if (user) {
-    res.json(user);
+    const payload = user.toObject();
+    payload.whatsappNumber = normalizeKenyanPhone(payload.whatsappNumber) || '';
+    res.json(payload);
   } else {
     res.status(404);
     throw new Error('User not found');

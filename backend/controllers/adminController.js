@@ -4,6 +4,7 @@ const Service = require('../models/Service');
 const Review = require('../models/reviewModel');
 const Job = require('../models/Job');
 const Report = require('../models/Report');
+const { normalizeKenyanPhone } = require('../utils/phone');
 
 const mapUser = (user) => ({
   _id: user._id,
@@ -12,7 +13,7 @@ const mapUser = (user) => ({
   university: user.university,
   course: user.course,
   image: user.image ?? '',
-  whatsappNumber: user.whatsappNumber ?? '',
+  whatsappNumber: normalizeKenyanPhone(user.whatsappNumber) || '',
   bio: user.bio ?? '',
   marketMode: user.marketMode ?? 'seller',
   isAdmin: Boolean(user.isAdmin),

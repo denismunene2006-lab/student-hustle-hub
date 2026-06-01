@@ -182,12 +182,49 @@
     return added;
   };
 
-    const ensureCountryCode = (number) => {
-    const numStr = String(number ?? '').trim();
-    if (!numStr) return '';
-    if (numStr.startsWith('+254')) return numStr;
-    if (numStr.startsWith('254') && numStr.length === 12) return `+${numStr}`;
-    return `+254${numStr.startsWith('0') ? numStr.slice(1) : numStr}`;
+  const KENYAN_PHONE_DISPLAY_PREFIX = '+254';
+  const KENYAN_MOBILE_BODY_PATTERN = /^(?:1|7)\d{8}$/;
+
+  const getKenyanPhoneBody = (number) => {
+    const raw = String(number ?? '').trim();
+    if (!raw) return '';
+
+    const compact = raw.replace(/\s+/g, '');
+    if (compact.startsWith('+') && !compact.startsWith(KENYAN_PHONE_DISPLAY_PREFIX)) return '';
+
+    let digits = compact.replace(/\D/g, '');
+    if (!digits) return '';
+
+    if (digits.startsWith('00')) digits = digits.slice(2);
+    if (digits.startsWith('254')) digits = digits.slice(3);
+    if (digits.startsWith('0')) digits = digits.slice(1);
+
+    return KENYAN_MOBILE_BODY_PATTERN.test(digits) ? digits : '';
+  };
+
+  const normalizeKenyanPhone = (number) => {
+    const body = getKenyanPhoneBody(number);
+    return body ? `${KENYAN_PHONE_DISPLAY_PREFIX}${body}` : '';
+  };
+
+  const toWhatsAppNumber = (number) => {
+    const normalized = normalizeKenyanPhone(number);
+    return normalized ? normalized.replace(/\D/g, '') : '';
+  };
+
+  const KENYAN_PHONE_ERROR = 'Enter a Kenyan WhatsApp number like +254712345678';
+
+  const normalizeOptionalKenyanPhone = (number) => {
+    const raw = String(number ?? '').trim();
+    const normalized = normalizeKenyanPhone(raw);
+    if (raw && !normalized) throw new Error(KENYAN_PHONE_ERROR);
+    return normalized;
+  };
+
+  const requireKenyanPhone = (number) => {
+    const normalized = normalizeOptionalKenyanPhone(number);
+    if (!normalized) throw new Error(KENYAN_PHONE_ERROR);
+    return normalized;
   };
 
   const normalizeUserPayload = (user, existing = {}) => {
@@ -202,7 +239,7 @@
       university: String(user?.university ?? existing?.university ?? 'Campus University').trim(),
       course: String(user?.course ?? existing?.course ?? 'N/A').trim(),
       image: String(user?.image ?? existing?.image ?? '').trim(),
-      whatsappNumber: ensureCountryCode(user?.whatsappNumber ?? existing?.whatsappNumber ?? ''),
+      whatsappNumber: normalizeKenyanPhone(user?.whatsappNumber ?? existing?.whatsappNumber ?? ''),
       bio: String(user?.bio ?? existing?.bio ?? '').trim(),
       marketMode: normalizeListingType(user?.marketMode ?? existing?.marketMode),
       isAdmin: Boolean(user?.isAdmin ?? existing?.isAdmin ?? isAdminEmail(email)),
@@ -355,7 +392,7 @@
     const id = (globalThis.crypto?.randomUUID?.() ?? `local-${Date.now()}-${Math.random().toString(16).slice(2)}`);
 
     const listingType = normalizeListingType(data?.listingType ?? user.marketMode);
-    const contactValue = String(data?.contactInfo ?? user.whatsappNumber ?? user.email ?? '').trim();
+    const contactValue = requireKenyanPhone(data?.contactInfo ?? user.whatsappNumber ?? '');
 
     const service = {
       _id: id,
@@ -435,7 +472,7 @@
     const description = String(updates?.description ?? existingService.description ?? '').trim();
     const category = String(updates?.category ?? existingService.category ?? '').trim();
     const listingType = normalizeListingType(updates?.listingType ?? existingService.listingType);
-    const contactInfo = String(updates?.contactInfo ?? existingService.contactInfo ?? '').trim();
+    const contactInfo = requireKenyanPhone(updates?.contactInfo ?? existingService.contactInfo ?? '');
     const price = Number(updates?.price ?? existingService.price ?? 0);
 
     if (!title || !description || !category || !contactInfo || !Number.isFinite(price) || price <= 0) {
@@ -461,6 +498,7 @@
   const updateProfile = (updates) => {
     const currentUser = getUser();
     if (!currentUser) throw new Error('Not authenticated');
+    const whatsappNumber = normalizeOptionalKenyanPhone(updates?.whatsappNumber ?? currentUser.whatsappNumber ?? '');
 
     const nextUser = {
       ...currentUser,
@@ -468,7 +506,7 @@
       email: String(updates?.email ?? currentUser.email ?? '').trim(),
       university: String(updates?.university ?? currentUser.university ?? '').trim(),
       course: String(updates?.course ?? currentUser.course ?? '').trim(),
-      whatsappNumber: String(updates?.whatsappNumber ?? currentUser.whatsappNumber ?? '').trim(),
+      whatsappNumber,
       bio: String(updates?.bio ?? currentUser.bio ?? '').trim(),
       image: String(updates?.image ?? currentUser.image ?? '').trim(),
       marketMode: normalizeListingType(updates?.marketMode ?? currentUser.marketMode),
@@ -827,9 +865,13 @@
   };
 
   const apiUpdateProfile = async (updates) => {
+    const body = { ...(updates ?? {}) };
+    if (Object.prototype.hasOwnProperty.call(body, 'whatsappNumber')) {
+      body.whatsappNumber = normalizeOptionalKenyanPhone(body.whatsappNumber);
+    }
     const data = await apiRequest('/auth/me', {
       method: 'PUT',
-      body: updates,
+      body,
     });
     return mergeAndSetUser(data);
   };
@@ -869,17 +911,25 @@
   const apiGetMyServices = async () => apiRequest('/services/my-services');
 
   const apiCreateService = async (data) => {
+    const body = {
+      ...(data ?? {}),
+      contactInfo: requireKenyanPhone(data?.contactInfo),
+    };
     return apiRequest('/services', {
       method: 'POST',
-      body: data,
+      body,
     });
   };
 
   const apiUpdateService = async (id, updates) => {
     if (!id) throw new Error('Service ID is required');
+    const body = { ...(updates ?? {}) };
+    if (Object.prototype.hasOwnProperty.call(body, 'contactInfo')) {
+      body.contactInfo = requireKenyanPhone(body.contactInfo);
+    }
     return apiRequest(`/services/${encodeURIComponent(id)}`, {
       method: 'PUT',
-      body: updates,
+      body,
     });
   };
 
@@ -1053,8 +1103,8 @@
     window.location.href = redirectTo;
   };
 
-  const SUPPORT_NUMBER_INTL = '254710236087';
-  const SUPPORT_NUMBER_LOCAL = '0710 236 087';
+  const SUPPORT_NUMBER_DISPLAY = '+254710236087';
+  const SUPPORT_NUMBER_INTL = toWhatsAppNumber(SUPPORT_NUMBER_DISPLAY);
   const SUPPORT_MESSAGE = encodeURIComponent('Hi, I need help with Student Hustle Hub.');
   const SUPPORT_LINK = `https://wa.me/${SUPPORT_NUMBER_INTL}?text=${SUPPORT_MESSAGE}`;
 
@@ -1139,7 +1189,7 @@
     document.documentElement.classList.toggle('dark', initialTheme === 'dark');
 
     host.innerHTML = `
-      <nav class="sticky top-0 z-50 border-b border-white/60 bg-white/86 shadow-[0_10px_32px_-22px_rgba(15,23,42,.55)] backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-950/80 dark:shadow-[0_12px_34px_-22px_rgba(2,6,23,.9)]">
+      <nav class="app-navbar-shell sticky top-0 z-50 border-b border-white/60 bg-white/86 shadow-[0_10px_32px_-22px_rgba(15,23,42,.55)] backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-950/80 dark:shadow-[0_12px_34px_-22px_rgba(2,6,23,.9)]">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5">
           <a href="index.html" class="inline-flex items-center gap-3 rounded-xl px-2 py-1 text-base font-semibold tracking-tight text-slate-900 hover:bg-slate-900/5 dark:text-white dark:hover:bg-white/10">
             <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white ring-1 ring-primary/30 shadow-sm">
@@ -1232,7 +1282,7 @@
               <a href="${SUPPORT_LINK}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600">
                 <i data-lucide="message-circle" class="h-4 w-4"></i>
                 <span class="sm:hidden">Help</span>
-                <span class="hidden sm:inline">Help WhatsApp ${SUPPORT_NUMBER_LOCAL}</span>
+                <span class="hidden sm:inline">Help WhatsApp ${SUPPORT_NUMBER_DISPLAY}</span>
               </a>
             </div>
           </div>
@@ -1295,6 +1345,8 @@
     adminDeleteReviewLocal,
     resetLocalDemoData,
     formatKES,
+    normalizeKenyanPhone,
+    toWhatsAppNumber,
     getApiBaseUrl,
     setApiBaseUrl,
     getGoogleClientId,

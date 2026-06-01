@@ -63,7 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const providerName = escapeHtml(rawProviderName);
         const providerUniversity = escapeHtml(provider.university ?? 'Campus');
         const providerImage = escapeHtml(provider.image ?? `https://i.pravatar.cc/150?u=${encodeURIComponent(provider.email ?? providerName)}`);
-        const contactInfo = escapeHtml(String(service?.contactInfo ?? '').trim());
+        const rawContactInfo = String(service?.contactInfo ?? '').trim();
+        const whatsappNumber = window.SHHub?.toWhatsAppNumber?.(rawContactInfo) || '';
         const providerId = String(provider._id ?? '');
         const ratingSummary = window.SHHub?.getRatingSummaryForUser?.(providerId) ?? { average: 0, count: 0 };
         const ratingText = ratingSummary.count > 0
@@ -112,10 +113,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button type="button" data-action="toggle-fav" data-id="${service._id}" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/70 bg-white/70 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60" title="Save to favorites">
                         <i data-lucide="heart" class="h-4 w-4 ${favClass} transition-colors"></i>
                     </button>
-                    <a href="https://wa.me/${contactInfo}?text=${encodeURIComponent(whatsappText)}" target="_blank" class="inline-flex items-center gap-2 rounded-xl border border-emerald-200/70 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 shadow-sm transition hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/20" title="Chat on WhatsApp">
+                    ${whatsappNumber ? `<a href="https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappText)}" target="_blank" class="inline-flex items-center gap-2 rounded-xl border border-emerald-200/70 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 shadow-sm transition hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/20" title="Chat on WhatsApp">
                         <i data-lucide="message-circle" class="h-4 w-4"></i>
                         ${actionText}
-                    </a>
+                    </a>` : ''}
                     <a href="service.html?id=${service._id}" class="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
                         View
                         <i data-lucide="arrow-right" class="h-4 w-4"></i>

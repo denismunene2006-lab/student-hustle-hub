@@ -21,6 +21,10 @@ body {
   padding-bottom: 7.5rem;
 }
 
+.app-navbar-shell {
+  width: 100%;
+}
+
 .app-bg {
   position: fixed;
   inset: 0;
@@ -274,5 +278,17 @@ html.dark .floating-footer-card {
 @media (max-width: 640px) {
   body {
     padding-bottom: 6.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  body {
+    padding-top: calc(4.75rem + env(safe-area-inset-top, 0px));
+  }
+
+  .app-navbar-shell {
+    position: fixed;
+    inset: 0 0 auto;
+    padding-top: env(safe-area-inset-top, 0px);
   }
 }

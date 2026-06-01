@@ -69,11 +69,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     getElement('user-uni').innerText = user.university;
     getElement('user-bio').innerText = user.bio || 'No bio provided.';
 
-    const contactInfo = user.whatsappNumber || 'No public contact.';
+    const contactInfo = window.SHHub?.normalizeKenyanPhone?.(user.whatsappNumber) || user.whatsappNumber || 'No public contact.';
     const contactEl = getElement('user-contact');
     contactEl.innerText = contactInfo;
     if (user.whatsappNumber && window.SHHub?.createCopyButton) {
-        const copyBtn = window.SHHub.createCopyButton(user.whatsappNumber, { toastMessage: 'Contact info copied!' });
+        const copyBtn = window.SHHub.createCopyButton(contactInfo, { toastMessage: 'Contact info copied!' });
         contactEl.insertAdjacentElement('afterend', copyBtn);
     }
 

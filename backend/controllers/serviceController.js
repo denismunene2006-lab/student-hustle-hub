@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const Service = require('../models/Service');
 const User = require('../models/User');
+const { normalizeKenyanPhone } = require('../utils/phone');
 
 // @desc    Get all services (public, with filters)
 // @route   GET /api/services
@@ -55,10 +56,16 @@ const getServiceById = asyncHandler(async (req, res) => {
 // @access  Private
 const createService = asyncHandler(async (req, res) => {
     const { title, description, category, price, listingType, contactInfo } = req.body;
+    const normalizedContactInfo = normalizeKenyanPhone(contactInfo);
 
     if (!title || !description || !category || !price) {
       res.status(400);
       throw new Error('Please fill all required fields');
+    }
+
+    if (!normalizedContactInfo) {
+      res.status(400);
+      throw new Error('Enter a Kenyan WhatsApp number like +254712345678');
     }
 
     const service = await Service.create({
@@ -68,7 +75,7 @@ const createService = asyncHandler(async (req, res) => {
       category,
       price,
       listingType: listingType === 'buyer' ? 'buyer' : 'seller',
-      contactInfo: contactInfo || '',
+      contactInfo: normalizedContactInfo,
     });
 
     const populatedService = await Service.findById(service._id).populate(
@@ -106,13 +113,20 @@ const updateService = asyncHandler(async (req, res) => {
     }
 
     const { title, description, category, price, listingType, contactInfo } = req.body;
+    const hasContactInfo = Object.prototype.hasOwnProperty.call(req.body, 'contactInfo');
+    const normalizedContactInfo = hasContactInfo ? normalizeKenyanPhone(contactInfo) : '';
+
+    if (hasContactInfo && !normalizedContactInfo) {
+      res.status(400);
+      throw new Error('Enter a Kenyan WhatsApp number like +254712345678');
+    }
 
     service.title = title || service.title;
     service.description = description || service.description;
     service.category = category || service.category;
     service.price = price || service.price;
     service.listingType = listingType || service.listingType;
-    service.contactInfo = contactInfo || service.contactInfo;
+    if (hasContactInfo) service.contactInfo = normalizedContactInfo;
 
     const updatedService = await service.save();
 

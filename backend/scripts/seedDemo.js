@@ -21,7 +21,7 @@ const demoUsers = [
     email: 'amina.demo@campus.example',
     university: 'Campus University',
     course: 'Mathematics',
-    whatsappNumber: '0712345678',
+    whatsappNumber: '+254712345678',
     bio: 'Patient math tutor focused on first-year courses.',
   },
   {
@@ -29,7 +29,7 @@ const demoUsers = [
     email: 'brian.demo@campus.example',
     university: 'Campus University',
     course: 'Graphic Design',
-    whatsappNumber: '0723456789',
+    whatsappNumber: '+254723456789',
     bio: 'Poster and social media design for student clubs.',
   },
   {
@@ -37,7 +37,7 @@ const demoUsers = [
     email: 'christine.demo@campus.example',
     university: 'Campus University',
     course: 'Electrical Engineering',
-    whatsappNumber: '0734567890',
+    whatsappNumber: '+254734567890',
     bio: 'Quick phone diagnostics and repair tips.',
   },
 ];

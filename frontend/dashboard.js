@@ -124,6 +124,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     return `KES ${safeAmount.toLocaleString('en-KE')}`;
   };
 
+  const normalizeKenyanPhone = (value) => window.SHHub?.normalizeKenyanPhone?.(value) || '';
+  const formatKenyanPhone = (value) => normalizeKenyanPhone(value) || String(value ?? '').trim();
+
   const updateProfileData = async (updates) => {
     if (isApiMode && window.SHHub?.apiUpdateProfile) {
       return await window.SHHub.apiUpdateProfile(updates);
@@ -168,7 +171,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const applyUserUI = (user) => {
     nameEl.innerText = user.name ?? 'Student';
     metaEl.innerText = `${user.email ?? ''}${user.course ? ` | ${user.course}` : ''}`;
-    whatsappEl.innerText = user.whatsappNumber ? `WhatsApp: ${user.whatsappNumber}` : 'WhatsApp: not set';
+    const whatsappNumber = formatKenyanPhone(user.whatsappNumber);
+    whatsappEl.innerText = whatsappNumber ? `WhatsApp: ${whatsappNumber}` : 'WhatsApp: not set';
     const marketMode = getMarketMode(user);
     modeEl.innerText = marketMode === 'buyer' ? 'Current mode: Buyer' : 'Current mode: Seller';
     applyModeButtons(marketMode);
@@ -193,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     getElement('profile-university').value = currentUser?.university ?? '';
     getElement('profile-course').value = currentUser?.course ?? '';
     getElement('profile-market-mode').value = getMarketMode(currentUser);
-    getElement('profile-whatsapp').value = currentUser?.whatsappNumber ?? '';
+    getElement('profile-whatsapp').value = formatKenyanPhone(currentUser?.whatsappNumber);
     getElement('profile-bio').value = currentUser?.bio ?? '';
     if (profileCurrentPassword) profileCurrentPassword.value = '';
     if (profileNewPassword) profileNewPassword.value = '';
@@ -207,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     getElement('service-title').value = service.title ?? '';
     getElement('service-category').value = service.category ?? 'Tutoring';
     getElement('service-price').value = Number(service.price ?? 0);
-    getElement('service-contact').value = service.contactInfo ?? '';
+    getElement('service-contact').value = formatKenyanPhone(service.contactInfo);
     getElement('service-description').value = service.description ?? '';
     openModal(serviceModal);
   };
@@ -374,7 +378,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             <h3 class="mt-1 truncate text-lg font-semibold tracking-tight text-slate-900 dark:text-white">${service.title}</h3>
             <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">${formatKES(service.price)}</p>
-            <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">Contact: ${service.contactInfo}</p>
+            <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">Contact: ${formatKenyanPhone(service.contactInfo)}</p>
           </div>
           <span class="rounded-full bg-slate-900/5 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-white/10 dark:text-slate-200">
             ${new Date(service.createdAt ?? Date.now()).toLocaleDateString()}
@@ -466,6 +470,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
+      const whatsappNumber = normalizeKenyanPhone(getElement('profile-whatsapp').value);
+      if (getElement('profile-whatsapp').value.trim() && !whatsappNumber) {
+        window.SHHub?.showToast?.('Enter a Kenyan WhatsApp number like +254712345678.', 'error');
+        return;
+      }
+
       currentUser =
         (await updateProfileData({
           name: getElement('profile-name').value,
@@ -473,7 +483,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           university: getElement('profile-university').value,
           course: getElement('profile-course').value,
           marketMode: getElement('profile-market-mode').value,
-          whatsappNumber: getElement('profile-whatsapp').value,
+          whatsappNumber,
           bio: getElement('profile-bio').value,
         })) ?? currentUser;
       applyUserUI(currentUser);
@@ -499,12 +509,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     event.preventDefault();
     const serviceId = getElement('service-id').value;
     try {
+      const contactInfo = normalizeKenyanPhone(getElement('service-contact').value);
+      if (!contactInfo) {
+        window.SHHub?.showToast?.('Enter a Kenyan WhatsApp number like +254712345678.', 'error');
+        return;
+      }
+
       await saveServiceData(serviceId, {
         listingType: getElement('service-listing-type').value,
         title: getElement('service-title').value,
         category: getElement('service-category').value,
         price: getElement('service-price').value,
-        contactInfo: getElement('service-contact').value,
+        contactInfo,
         description: getElement('service-description').value,
       });
       closeModal(serviceModal);
