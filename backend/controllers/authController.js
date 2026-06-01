@@ -5,7 +5,8 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const { OAuth2Client } = require('google-auth-library');
 
-const googleClientId = String(process.env.GOOGLE_CLIENT_ID ?? '').trim();
+const DEFAULT_GOOGLE_CLIENT_ID = '947039282232-c3t04h5tuehfqi5h8psjqa12rtd0igt6.apps.googleusercontent.com';
+const googleClientId = String(process.env.GOOGLE_CLIENT_ID ?? DEFAULT_GOOGLE_CLIENT_ID).trim();
 const googleClient = googleClientId ? new OAuth2Client(googleClientId) : null;
 
 const generateToken = (id) => {

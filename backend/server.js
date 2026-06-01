@@ -10,10 +10,36 @@ const connectDB = require('./config/db');
 
 const app = express();
 
+const normalizeOrigin = (value) => String(value ?? '').trim().replace(/\/+$/, '');
+const buildAllowedOrigins = () => {
+  const raw = String(process.env.ALLOWED_ORIGINS ?? '').trim();
+  const values = raw
+    .split(',')
+    .map((value) => normalizeOrigin(value))
+    .filter(Boolean);
+
+  if (process.env.NODE_ENV !== 'production') {
+    values.push('http://localhost:5502', 'http://127.0.0.1:5502');
+  }
+
+  return Array.from(new Set(values));
+};
+
+const allowedOrigins = buildAllowedOrigins();
+
 // ---------------- Middleware ----------------
-// Use CORS - This will allow requests from any origin.
-// It's simple and perfect for development.
-app.use(cors());
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.length === 0) return callback(null, true);
+      const normalizedOrigin = normalizeOrigin(origin);
+      if (allowedOrigins.includes(normalizedOrigin)) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  })
+);
 // Increase the body-parser limit to allow for Base64 image uploads.
 // The default is 100kb, which is too small for images.
 app.use(express.json({ limit: '10mb' }));
