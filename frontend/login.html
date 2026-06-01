@@ -7,6 +7,7 @@
     <title>Login - Student Hustle Hub</title>
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://unpkg.com">
+    <script defer src="https://accounts.google.com/gsi/client"></script>
     <meta name="description" content="Login to Student Hustle Hub to post and manage your campus services.">
     <meta name="api-base-url" content="http://localhost:5000/api">
     <link rel="stylesheet" href="app.css">
@@ -67,6 +68,14 @@
                     </a>
                 </div>
 
+                <div class="flex items-center gap-3 py-1">
+                    <div class="h-px flex-1 bg-slate-200/80 dark:bg-slate-700/70"></div>
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">or</span>
+                    <div class="h-px flex-1 bg-slate-200/80 dark:bg-slate-700/70"></div>
+                </div>
+
+                <div id="google-signin-button" class="flex justify-center"></div>
+
                 <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
                     <i data-lucide="arrow-right" class="h-4 w-4"></i>
                     Login
@@ -90,9 +99,11 @@
             const errorEl = document.getElementById('form-error');
             const modeNoteEl = document.getElementById('auth-mode-note');
             const createHintEl = document.getElementById('create-account-hint');
+            const googleButtonHost = document.getElementById('google-signin-button');
             const passwordInput = document.getElementById('password');
             const showPasswordToggle = document.getElementById('show-password');
             const isApiMode = window.SHHub?.isApiMode?.() === true;
+            const googleClientId = window.SHHub?.getGoogleClientId?.() || '';
             if (modeNoteEl && isApiMode) {
                 modeNoteEl.innerText = 'Connected mode: secure server login is active.';
             }
@@ -119,6 +130,70 @@
                 if (!passwordInput) return;
                 passwordInput.type = showPasswordToggle.checked ? 'text' : 'password';
             });
+
+            const renderGoogleButton = () => {
+                if (!googleButtonHost || !googleClientId || !window.google?.accounts?.id || !window.SHHub?.apiGoogleAuth) {
+                    if (googleButtonHost) {
+                        googleButtonHost.innerHTML = '';
+                    }
+                    return;
+                }
+
+                window.google.accounts.id.initialize({
+                    client_id: googleClientId,
+                    callback: async (response) => {
+                        errorEl.classList.add('hidden');
+                        createHintEl?.classList.add('hidden');
+                        try {
+                            // Try to decode the token locally to get the email
+                            const decode = (token) => {
+                                try {
+                                    const parts = String(token).split('.');
+                                    if (parts.length < 2) return null;
+                                    const payload = parts[1];
+                                    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+                                    return JSON.parse(decodeURIComponent(escape(json)));
+                                } catch (e) {
+                                    try { return JSON.parse(atob(String(token).split('.')[1])); } catch { return null; }
+                                }
+                            };
+
+                            const payload = decode(response.credential) || {};
+                            const email = String(payload.email ?? '').trim();
+
+                            // If we can determine the email, check if it exists first to avoid unnecessary redirection
+                            if (email) {
+                                const exists = await window.SHHub.apiCheckEmailExists(email).catch(() => false);
+                                if (!exists) {
+                                    // No existing account: redirect to register with the credential stored
+                                    try {
+                                        sessionStorage.setItem('shub_pending_google_credential', response.credential);
+                                        window.location.href = 'register.html';
+                                        return;
+                                    } catch (e) {}
+                                }
+                            }
+
+                            // Otherwise attempt normal login (backend will handle matching/linking)
+                            await window.SHHub.apiGoogleAuth({ credential: response.credential, allowCreate: false });
+                            window.location.href = 'dashboard.html';
+                        } catch (error) {
+                            showError(error?.message || 'Google sign-in failed.');
+                        }
+                    },
+                });
+
+                googleButtonHost.innerHTML = '';
+                window.google.accounts.id.renderButton(googleButtonHost, {
+                    theme: 'outline',
+                    size: 'large',
+                    text: 'continue_with',
+                    shape: 'pill',
+                    width: 360,
+                });
+            };
+
+            renderGoogleButton();
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();

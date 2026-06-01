@@ -8,6 +8,7 @@
   const HIDDEN_DEMO_REVIEWS_KEY = 'shhub_hidden_demo_reviews';
   const FAVORITES_KEY = 'shhub_favorites';
   const API_BASE_KEY = 'shhub_api_base_url';
+  const GOOGLE_CLIENT_KEY = 'shhub_google_client_id';
   const API_REQUEST_TIMEOUT_MS = 30000;
   const ADMIN_EMAILS = [];
 
@@ -41,20 +42,45 @@
   const normalizeEmail = (value) => String(value ?? '').trim().toLowerCase();
   const normalizeListingType = (value) => (value === 'buyer' ? 'buyer' : 'seller');
   const isAdminEmail = (email) => ADMIN_EMAILS.includes(normalizeEmail(email));
+  const isLocalApiUrl = (value) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(String(value ?? '').trim());
 
   const getApiBaseUrl = () => {
     const metaValue = document.querySelector('meta[name="api-base-url"]')?.content;
     const globalValue = globalThis.SHHub_API_BASE_URL;
     const savedValue = storageGet(API_BASE_KEY);
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // Local development should favor local API values to avoid stale deployed endpoints.
+    if (isLocal) {
+      const savedLocal = normalizeUrl(savedValue || '');
+      if (savedLocal && isLocalApiUrl(savedLocal)) return savedLocal;
+
+      const metaLocal = normalizeUrl(metaValue || '');
+      if (metaLocal && isLocalApiUrl(metaLocal)) return metaLocal;
+
+      const fallbackLocal = normalizeUrl('http://localhost:5000/api');
+      return fallbackLocal;
+    }
+
     const explicit = normalizeUrl(savedValue || globalValue || metaValue || '');
     if (explicit) return explicit;
 
-    // Add a sensible default for local development when running from a live server
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    if (isLocal) {
-      return 'http://localhost:5000/api';
-    }
+    return '';
+  };
 
+  const getGoogleClientId = () => {
+    const savedValue = storageGet(GOOGLE_CLIENT_KEY);
+    const globalValue = globalThis.SHHub_GOOGLE_CLIENT_ID;
+    return String(savedValue || globalValue || '').trim();
+  };
+
+  const setGoogleClientId = (value) => {
+    const normalized = String(value ?? '').trim();
+    if (normalized) {
+      storageSet(GOOGLE_CLIENT_KEY, normalized);
+      return normalized;
+    }
+    storageRemove(GOOGLE_CLIENT_KEY);
     return '';
   };
 
@@ -172,6 +198,7 @@
       _id: String(user?._id ?? existing?._id ?? `local-user-${Date.now()}`),
       name: String(user?.name ?? existing?.name ?? 'Student User').trim(),
       email,
+      googleId: String(user?.googleId ?? existing?.googleId ?? '').trim(),
       university: String(user?.university ?? existing?.university ?? 'Campus University').trim(),
       course: String(user?.course ?? existing?.course ?? 'N/A').trim(),
       image: String(user?.image ?? existing?.image ?? '').trim(),
@@ -181,6 +208,7 @@
       isAdmin: Boolean(user?.isAdmin ?? existing?.isAdmin ?? isAdminEmail(email)),
       isSuspended: Boolean(user?.isSuspended ?? existing?.isSuspended ?? false),
       suspensionReason: String(user?.suspensionReason ?? existing?.suspensionReason ?? '').trim(),
+      googleConnected: Boolean(user?.googleId ?? existing?.googleId ?? false),
       token: String(user?.token ?? existing?.token ?? '').trim(),
     };
   };
@@ -778,6 +806,21 @@
     return mergeAndSetUser(data);
   };
 
+  const apiGoogleAuth = async (payload) => {
+    const data = await apiRequest('/auth/google', {
+      method: 'POST',
+      auth: false,
+      body: payload,
+    });
+    return mergeAndSetUser(data);
+  };
+
+  const apiCheckEmailExists = async (email) => {
+    if (!email) return false;
+    const data = await apiRequest(`/auth/exists?email=${encodeURIComponent(String(email).trim())}`, { auth: false });
+    return Boolean(data?.exists);
+  };
+
   const apiGetProfile = async () => {
     const data = await apiRequest('/auth/me');
     return mergeAndSetUser(data);
@@ -1254,9 +1297,13 @@
     formatKES,
     getApiBaseUrl,
     setApiBaseUrl,
+    getGoogleClientId,
+    setGoogleClientId,
     isApiMode,
     apiLogin,
     apiRegister,
+    apiGoogleAuth,
+    apiCheckEmailExists,
     apiGetProfile,
     apiUpdateProfile,
     apiUpdatePassword,

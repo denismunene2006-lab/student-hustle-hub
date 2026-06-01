@@ -6,6 +6,7 @@ Student Hustle Hub is a full-stack campus marketplace allowing students to seaml
  
 ## Highlights
 - Student accounts with editable profiles
+- Email/password and Google sign-in
 - Buyer/Seller mode switch per user
 - Service posting and service editing
 - Ratings and reviews for each student provider
@@ -49,6 +50,14 @@ You will need two terminal windows open to run both the frontend and backend sim
     ```
     The API will be running on `http://localhost:5000`.
 
+### Google Sign-In Setup
+To enable Google login and sign up:
+1. Create a Google OAuth client ID for a web application in Google Cloud Console.
+2. Add your backend URL and frontend origin to the authorized JavaScript origins.
+3. Set `GOOGLE_CLIENT_ID` in `backend/.env`.
+4. Set `window.SHHub_GOOGLE_CLIENT_ID` in `frontend/config.js`.
+5. Restart the backend and refresh the frontend.
+
 ### Optional: Seed Demo Data
 If you want sample users/services in your local database, run:
 ```sh
@@ -86,6 +95,7 @@ This keeps hosting free and simple.
    - `MONGO_URI`
    - `JWT_SECRET`
    - `ADMIN_EMAILS` (comma-separated)
+    - `GOOGLE_CLIENT_ID`
 6. Deploy. Render free services can spin down after ~15 minutes of inactivity and resume on the next request.
 
 **Frontend (Netlify – Free)**
@@ -100,6 +110,7 @@ This keeps hosting free and simple.
 2. Set:
    ```js
    window.SHHub_API_BASE_URL = 'https://your-service.onrender.com/api';
+    window.SHHub_GOOGLE_CLIENT_ID = 'your-google-client-id.apps.googleusercontent.com';
    ```
 3. Commit and redeploy the frontend.
 

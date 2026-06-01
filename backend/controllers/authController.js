@@ -3,6 +3,10 @@ const bcrypt = require('bcryptjs');
 const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClientId = String(process.env.GOOGLE_CLIENT_ID ?? '').trim();
+const googleClient = googleClientId ? new OAuth2Client(googleClientId) : null;
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -61,6 +65,7 @@ const mapUser = (user) => ({
   _id: user.id,
   name: user.name,
   email: user.email,
+  googleId: user.googleId ?? '',
   university: user.university,
   course: user.course,
   image: user.image ?? '',
@@ -71,6 +76,30 @@ const mapUser = (user) => ({
   isSuspended: Boolean(user.isSuspended),
   suspensionReason: user.suspensionReason ?? '',
 });
+
+const isEmailVerified = (value) => value === true || value === 'true';
+
+const verifyGoogleCredential = async (credential) => {
+  if (!googleClient) {
+    throw new Error('Google sign-in is not configured on the server');
+  }
+
+  const ticket = await googleClient.verifyIdToken({
+    idToken: credential,
+    audience: googleClientId,
+  });
+
+  const payload = ticket.getPayload();
+  if (!payload?.email) {
+    throw new Error('Google account email is missing');
+  }
+
+  if (!isEmailVerified(payload.email_verified)) {
+    throw new Error('Google account email is not verified');
+  }
+
+  return payload;
+};
 
 const registerUser = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
@@ -99,6 +128,7 @@ const registerUser = asyncHandler(async (req, res) => {
     name,
     email: normalizedEmail,
     password: hashedPassword,
+    googleId: '',
     university,
     course,
     isAdmin: shouldAdmin,
@@ -128,6 +158,11 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findOne({ email: normalizedEmail });
+  if (user && !String(user.password ?? '').trim()) {
+    res.status(400);
+    throw new Error('This account uses Google sign-in. Please continue with Google.');
+  }
+
   if (user && (await bcrypt.compare(password, user.password))) {
     if (user.isSuspended) {
       res.status(403);
@@ -148,6 +183,93 @@ const loginUser = asyncHandler(async (req, res) => {
     res.status(locked ? 429 : 401);
     throw new Error(locked ? 'Too many failed attempts. Try again later.' : 'Invalid email or password');
   }
+});
+
+const googleAuth = asyncHandler(async (req, res) => {
+  const credential = String(req.body?.credential ?? '').trim();
+  const allowCreate = Boolean(req.body?.allowCreate);
+  const requestedName = String(req.body?.name ?? '').trim();
+  const requestedUniversity = String(req.body?.university ?? '').trim();
+  const requestedCourse = String(req.body?.course ?? '').trim();
+
+  if (!credential) {
+    res.status(400);
+    throw new Error('Google credential is required');
+  }
+
+  const payload = await verifyGoogleCredential(credential);
+  const normalizedEmail = normalizeEmail(payload.email);
+  const googleId = String(payload.sub ?? '').trim();
+
+  if (!normalizedEmail || !googleId) {
+    res.status(400);
+    throw new Error('Google sign-in payload is incomplete');
+  }
+
+  let user = await User.findOne({ googleId });
+  if (!user) {
+    user = await User.findOne({
+      email: { $regex: new RegExp(`^${escapeRegExp(normalizedEmail)}$`, 'i') },
+    });
+  }
+
+  if (!user) {
+    if (!allowCreate) {
+      res.status(404);
+      throw new Error('No account found for this Google login. Please register first.');
+    }
+
+    if (!requestedUniversity || !requestedCourse) {
+      res.status(400);
+      throw new Error('University and course are required to create a Google account');
+    }
+
+    const shouldAdmin = isAdminEmail(normalizedEmail) || (await User.countDocuments()) === 0;
+
+    user = await User.create({
+      name: requestedName || String(payload.name ?? 'Google User').trim() || 'Google User',
+      email: normalizedEmail,
+      password: '',
+      googleId,
+      university: requestedUniversity,
+      course: requestedCourse,
+      image: String(payload.picture ?? '').trim(),
+      isAdmin: shouldAdmin,
+    });
+  } else {
+    if (user.isSuspended) {
+      res.status(403);
+      const reason = String(user.suspensionReason ?? '').trim();
+      throw new Error(reason ? `Account suspended: ${reason}` : 'Account suspended. Contact support.');
+    }
+
+    let changed = false;
+    if (!user.googleId) {
+      user.googleId = googleId;
+      changed = true;
+    }
+    if (!String(user.image ?? '').trim() && String(payload.picture ?? '').trim()) {
+      user.image = String(payload.picture).trim();
+      changed = true;
+    }
+    if (!String(user.name ?? '').trim() && (requestedName || payload.name)) {
+      user.name = requestedName || String(payload.name ?? '').trim();
+      changed = true;
+    }
+    if (changed) {
+      await user.save();
+    }
+  }
+
+  if (!user.isAdmin && isAdminEmail(normalizedEmail)) {
+    user.isAdmin = true;
+    await user.save();
+  }
+
+  res.json({
+    ...mapUser(user),
+    token: generateToken(user.id),
+  });
 });
 
 const getMe = asyncHandler(async (req, res) => {
@@ -226,10 +348,17 @@ const updatePassword = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 
-  const matches = await bcrypt.compare(currentPassword, user.password);
-  if (!matches) {
-    res.status(401);
-    throw new Error('Current password is incorrect');
+  const hasExistingPassword = Boolean(String(user.password ?? '').trim());
+  if (hasExistingPassword) {
+    const matches = await bcrypt.compare(currentPassword, user.password);
+    if (!matches) {
+      res.status(401);
+      throw new Error('Current password is incorrect');
+    }
+  } else if (!currentPassword) {
+  } else {
+    res.status(400);
+    throw new Error('This account does not have a current password yet. Leave current password empty to set one.');
   }
 
   const salt = await bcrypt.genSalt(10);
@@ -239,4 +368,20 @@ const updatePassword = asyncHandler(async (req, res) => {
   res.json({ ok: true });
 });
 
-module.exports = { registerUser, loginUser, getMe, updateMe, updatePassword };
+module.exports = { registerUser, loginUser, googleAuth, getMe, updateMe, updatePassword };
+
+const checkEmailExists = asyncHandler(async (req, res) => {
+  const email = String(req.query?.email ?? '').trim().toLowerCase();
+  if (!email) {
+    res.status(400);
+    throw new Error('Email is required');
+  }
+
+  const user = await User.findOne({
+    email: { $regex: new RegExp(`^${escapeRegExp(email)}$`, 'i') },
+  });
+
+  res.json({ exists: Boolean(user) });
+});
+
+module.exports = { registerUser, loginUser, googleAuth, getMe, updateMe, updatePassword, checkEmailExists };

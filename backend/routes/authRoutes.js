@@ -3,9 +3,11 @@ const { check } = require('express-validator');
 const {
   registerUser,
   loginUser,
+  googleAuth,
   getMe,
   updateMe,
   updatePassword,
+  checkEmailExists,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -31,6 +33,16 @@ router.post(
   ],
   loginUser
 );
+
+router.post(
+  '/google',
+  [
+    check('credential', 'Google credential is required').not().isEmpty(),
+  ],
+  googleAuth
+);
+
+router.get('/exists', checkEmailExists);
 
 router.route('/me').get(protect, getMe).put(protect, updateMe);
 router.put(
