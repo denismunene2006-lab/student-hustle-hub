@@ -138,5 +138,5 @@ Alternative options:
 - **Backend:** Railway or Render
 - **Database:** MongoDB Atlas
 ---
-**Support**:
+**Support**:😀
 If you like this project, consider giving it a star.
