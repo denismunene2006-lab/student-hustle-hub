@@ -216,6 +216,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     openModal(serviceModal);
   };
 
+  const getEntityId = (entity) => String(entity?._id ?? entity ?? '');
+  const getJobAmount = (job) => Number(job?.serviceSnapshot?.price ?? job?.service?.price ?? 0);
+
+  const fetchJobSummary = async () => {
+    const activeRole = getMarketMode(currentUser);
+
+    if (isApiMode && window.SHHub?.apiGetMyJobSummary) {
+      return await window.SHHub.apiGetMyJobSummary(activeRole);
+    }
+
+    const completedJobs = myJobsCache.filter((job) => {
+      const isSeller = getEntityId(job?.seller) === getEntityId(currentUser);
+      const isBuyer = getEntityId(job?.buyer) === getEntityId(currentUser);
+      return job.status === 'completed' && (activeRole === 'seller' ? isSeller : isBuyer);
+    });
+
+    return {
+      completedCount: completedJobs.length,
+      totalValue: completedJobs.reduce((sum, job) => sum + getJobAmount(job), 0),
+    };
+  };
+
   const renderStatsAndHistory = async () => {
     let summary = { average: 0, count: 0 };
     if (isApiMode && window.SHHub?.apiGetReviewsForUser && currentUser?._id) {
@@ -251,10 +273,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       myJobsCache = [];
     }
 
-    const getJobAmount = (job) => Number(job?.serviceSnapshot?.price ?? job?.service?.price ?? 0);
     const getJobTitle = (job) => job?.serviceSnapshot?.title ?? job?.service?.title ?? 'Service';
     const getCounterparty = (job) => {
-      const isSeller = String(job?.seller?._id ?? '') === String(currentUser?._id ?? '');
+      const isSeller = getEntityId(job?.seller) === getEntityId(currentUser);
       const other = isSeller ? job?.buyer : job?.seller;
       return other?.name ?? other?.email ?? 'Student';
     };
@@ -280,8 +301,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     const renderActions = (job) => {
-      const isSeller = String(job?.seller?._id ?? '') === String(currentUser?._id ?? '');
-      const isBuyer = String(job?.buyer?._id ?? '') === String(currentUser?._id ?? '');
+      const isSeller = getEntityId(job?.seller) === getEntityId(currentUser);
+      const isBuyer = getEntityId(job?.buyer) === getEntityId(currentUser);
       const actions = [];
 
       const pushAction = (label, next, tone = 'primary') => {
@@ -306,15 +327,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       return `<div class="mt-2 flex flex-wrap gap-2">${actions.join('')}</div>`;
     };
 
-    const activeRole = getMarketMode(currentUser);
-    const completedJobs = myJobsCache.filter((job) => {
-      const isSeller = String(job?.seller?._id ?? '') === String(currentUser?._id ?? '');
-      const isBuyer = String(job?.buyer?._id ?? '') === String(currentUser?._id ?? '');
-      return job.status === 'completed' && (activeRole === 'seller' ? isSeller : isBuyer);
-    });
-    const totalValue = completedJobs.reduce((sum, job) => sum + getJobAmount(job), 0);
-    getElement('total-completed').innerText = String(completedJobs.length);
-    getElement('total-earnings').innerText = formatKES(totalValue);
+    let jobSummary = { completedCount: 0, totalValue: 0 };
+    try {
+      jobSummary = await fetchJobSummary();
+    } catch (error) {
+      if (!isNetworkError(error)) {
+        window.SHHub?.showToast?.(error?.message || 'Failed to load job stats.', 'error');
+      }
+    }
+
+    getElement('total-completed').innerText = String(jobSummary.completedCount ?? 0);
+    getElement('total-earnings').innerText = formatKES(jobSummary.totalValue ?? 0);
 
     if (!historyBody) return;
 
@@ -428,6 +451,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       currentUser = (await updateProfileData({ marketMode: 'seller' })) ?? currentUser;
       applyUserUI(currentUser);
+      await renderStatsAndHistory();
       window.SHHub?.showToast?.('Switched to Seller mode', 'success');
     } catch (error) {
       window.SHHub?.showToast?.(error?.message || 'Failed to switch mode.', 'error');
@@ -437,6 +461,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       currentUser = (await updateProfileData({ marketMode: 'buyer' })) ?? currentUser;
       applyUserUI(currentUser);
+      await renderStatsAndHistory();
       window.SHHub?.showToast?.('Switched to Buyer mode', 'success');
     } catch (error) {
       window.SHHub?.showToast?.(error?.message || 'Failed to switch mode.', 'error');

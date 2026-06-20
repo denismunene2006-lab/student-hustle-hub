@@ -139,6 +139,47 @@ const getMyJobs = asyncHandler(async (req, res) => {
   res.status(200).json(jobs);
 });
 
+// @desc    Get completed job stats for the logged-in user
+// @route   GET /api/jobs/my/summary
+// @access  Private
+const getMyJobSummary = asyncHandler(async (req, res) => {
+  const role = req.query.role === 'buyer' ? 'buyer' : req.query.role === 'seller' ? 'seller' : null;
+  const match = { status: 'completed' };
+
+  if (role === 'buyer') {
+    match.buyer = req.user._id;
+  } else if (role === 'seller') {
+    match.seller = req.user._id;
+  } else {
+    match.$or = [{ buyer: req.user._id }, { seller: req.user._id }];
+  }
+
+  const [summary] = await Job.aggregate([
+    { $match: match },
+    {
+      $group: {
+        _id: null,
+        completedCount: { $sum: 1 },
+        totalValue: {
+          $sum: {
+            $convert: {
+              input: { $ifNull: ['$serviceSnapshot.price', 0] },
+              to: 'double',
+              onError: 0,
+              onNull: 0,
+            },
+          },
+        },
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    completedCount: summary?.completedCount ?? 0,
+    totalValue: summary?.totalValue ?? 0,
+  });
+});
+
 // @desc    Update job status
 // @route   PUT /api/jobs/:id/status
 // @access  Private
@@ -179,5 +220,6 @@ const updateJobStatus = asyncHandler(async (req, res) => {
 module.exports = {
   createJob,
   getMyJobs,
+  getMyJobSummary,
   updateJobStatus,
 };

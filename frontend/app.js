@@ -1038,6 +1038,11 @@
     return apiRequest(`/jobs/my${query}`);
   };
 
+  const apiGetMyJobSummary = async (role) => {
+    const query = buildQueryString({ role });
+    return apiRequest(`/jobs/my/summary${query}`);
+  };
+
   const apiUpdateJobStatus = async (jobId, status) => {
     if (!jobId) throw new Error('Job ID is required');
     return apiRequest(`/jobs/${encodeURIComponent(jobId)}/status`, {
@@ -1437,6 +1442,7 @@
     apiCreateReport,
     apiCreateJob,
     apiGetMyJobs,
+    apiGetMyJobSummary,
     apiUpdateJobStatus,
     apiGetAdminStats,
     apiGetAdminUsers,
