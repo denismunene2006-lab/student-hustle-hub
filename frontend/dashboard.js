@@ -218,23 +218,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const getEntityId = (entity) => String(entity?._id ?? entity ?? '');
   const getJobAmount = (job) => Number(job?.serviceSnapshot?.price ?? job?.service?.price ?? 0);
+  const COUNTABLE_JOB_STATUSES = new Set(['delivered', 'completed']);
 
-  const fetchJobSummary = async () => {
-    const activeRole = getMarketMode(currentUser);
-
-    if (isApiMode && window.SHHub?.apiGetMyJobSummary) {
-      return await window.SHHub.apiGetMyJobSummary(activeRole);
-    }
-
-    const completedJobs = myJobsCache.filter((job) => {
+  const computeJobSummary = () => {
+    const relevantJobs = myJobsCache.filter((job) => {
+      if (!COUNTABLE_JOB_STATUSES.has(job.status)) return false;
       const isSeller = getEntityId(job?.seller) === getEntityId(currentUser);
       const isBuyer = getEntityId(job?.buyer) === getEntityId(currentUser);
-      return job.status === 'completed' && (activeRole === 'seller' ? isSeller : isBuyer);
+      return isSeller || isBuyer;
     });
 
     return {
-      completedCount: completedJobs.length,
-      totalValue: completedJobs.reduce((sum, job) => sum + getJobAmount(job), 0),
+      completedCount: relevantJobs.length,
+      totalValue: relevantJobs.reduce((sum, job) => sum + getJobAmount(job), 0),
     };
   };
 
@@ -327,17 +323,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       return `<div class="mt-2 flex flex-wrap gap-2">${actions.join('')}</div>`;
     };
 
-    let jobSummary = { completedCount: 0, totalValue: 0 };
-    try {
-      jobSummary = await fetchJobSummary();
-    } catch (error) {
-      if (!isNetworkError(error)) {
-        window.SHHub?.showToast?.(error?.message || 'Failed to load job stats.', 'error');
-      }
-    }
-
-    getElement('total-completed').innerText = String(jobSummary.completedCount ?? 0);
-    getElement('total-earnings').innerText = formatKES(jobSummary.totalValue ?? 0);
+    const jobSummary = computeJobSummary();
+    getElement('total-completed').innerText = String(jobSummary.completedCount);
+    getElement('total-earnings').innerText = formatKES(jobSummary.totalValue);
 
     if (!historyBody) return;
 

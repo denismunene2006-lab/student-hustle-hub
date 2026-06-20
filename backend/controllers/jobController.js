@@ -139,12 +139,15 @@ const getMyJobs = asyncHandler(async (req, res) => {
   res.status(200).json(jobs);
 });
 
+// Job statuses that count toward dashboard completed jobs and total value.
+const COUNTABLE_JOB_STATUSES = ['delivered', 'completed'];
+
 // @desc    Get completed job stats for the logged-in user
 // @route   GET /api/jobs/my/summary
 // @access  Private
 const getMyJobSummary = asyncHandler(async (req, res) => {
   const role = req.query.role === 'buyer' ? 'buyer' : req.query.role === 'seller' ? 'seller' : null;
-  const match = { status: 'completed' };
+  const match = { status: { $in: COUNTABLE_JOB_STATUSES } };
 
   if (role === 'buyer') {
     match.buyer = req.user._id;
