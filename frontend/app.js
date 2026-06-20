@@ -1247,35 +1247,51 @@
     ].join('');
   };
 
-  const ensureNavbarHost = () => {
-    let host = document.getElementById('app-navbar');
-    if (host) return host;
-
-    host = document.createElement('header');
-    host.id = 'app-navbar';
-    const main = document.querySelector('main');
-    if (main) {
-      main.insertAdjacentElement('beforebegin', host);
-    } else {
-      document.body.prepend(host);
-    }
-    return host;
-  };
-
   const renderNavbar = () => {
-    const host = ensureNavbarHost();
+    const host = document.getElementById('app-navbar');
+    if (!host) return;
 
     const user = getUser();
     const initialTheme = getThemePreference();
     document.documentElement.classList.toggle('dark', initialTheme === 'dark');
 
-    const navbarTemplate = window.SHHubShell?.templates?.navbar;
-    if (!navbarTemplate) return;
-    host.innerHTML = navbarTemplate({
-      initialTheme,
-      userLinksHtml: buildLinks(user, false),
-      mobileLinksHtml: buildLinks(user, true),
-    });
+    host.innerHTML = `
+      <nav class="app-navbar-shell sticky top-0 z-50 border-b border-white/60 bg-white/86 shadow-[0_10px_32px_-22px_rgba(15,23,42,.55)] backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-950/80 dark:shadow-[0_12px_34px_-22px_rgba(2,6,23,.9)]">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5">
+          <a href="index.html" class="inline-flex items-center gap-3 rounded-xl px-2 py-1 text-base font-semibold tracking-tight text-slate-900 hover:bg-slate-900/5 dark:text-white dark:hover:bg-white/10">
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white ring-1 ring-primary/30 shadow-sm">
+              <i data-lucide="briefcase" class="h-5 w-5"></i>
+            </span>
+            <span class="leading-tight">
+              <span class="block">Student Hustle Hub</span>
+              <span class="hidden text-xs font-medium text-slate-500 dark:text-slate-300 sm:block">Campus Service Marketplace</span>
+            </span>
+          </a>
+
+          <div class="hidden items-center gap-1 md:flex">
+            ${buildLinks(user, false)}
+            <button type="button" data-action="toggle-theme" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-white dark:border-slate-700/70 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:bg-slate-950/80" aria-label="Toggle theme">
+              <i data-theme-icon data-lucide="${initialTheme === 'dark' ? 'sun' : 'moon'}" class="h-4 w-4"></i>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1 md:hidden">
+            <button type="button" data-action="toggle-theme" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-white dark:border-slate-700/70 dark:bg-slate-950/60 dark:text-slate-200 dark:hover:bg-slate-950/80" aria-label="Toggle theme">
+              <i data-theme-icon data-lucide="${initialTheme === 'dark' ? 'sun' : 'moon'}" class="h-4 w-4"></i>
+            </button>
+            <button type="button" data-action="toggle-menu" class="${buttonClass('ghost', false)}" aria-label="Open menu">
+              <i data-lucide="menu" class="h-5 w-5"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden border-t border-slate-200/70 bg-white/90 px-4 py-3 backdrop-blur dark:border-slate-700/70 dark:bg-slate-950/75 md:hidden">
+          <div class="flex flex-col gap-1">
+            ${buildLinks(user, true)}
+          </div>
+        </div>
+      </nav>
+    `;
 
     host.querySelectorAll('[data-action="toggle-theme"]').forEach((button) => {
       button.addEventListener('click', toggleTheme);
@@ -1298,8 +1314,6 @@
     const existingFooter = document.getElementById('app-footer');
     existingFooter?.remove();
     const user = getUser();
-    const footerTemplate = window.SHHubShell?.templates?.footer;
-    if (!footerTemplate) return;
 
     const footer = document.createElement('footer');
     footer.id = 'app-footer';
@@ -1314,11 +1328,34 @@
       user?.isAdmin ? `<a href="admin.html" class="${linkClass(false, getCurrentPage() === 'admin.html')}">Admin</a>` : '',
     ].filter(Boolean).join('');
 
-    footer.innerHTML = footerTemplate({
-      quickLinksHtml: quickLinks,
-      supportLink: SUPPORT_LINK,
-      supportNumberDisplay: SUPPORT_NUMBER_DISPLAY,
-    });
+    footer.innerHTML = `
+      <div class="mx-auto max-w-7xl px-4">
+        <div class="floating-footer-card rounded-2xl px-4 py-3 sm:px-5">
+          <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white ring-1 ring-primary/30 shadow-sm">
+                <i data-lucide="briefcase" class="h-4 w-4"></i>
+              </span>
+              <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">Student Hustle Hub</p>
+                <p class="truncate text-xs text-slate-500 dark:text-slate-400">Find trusted student services on campus.</p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="hidden items-center gap-2 md:flex">
+                ${quickLinks}
+              </div>
+              <a href="${SUPPORT_LINK}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600">
+                <i data-lucide="message-circle" class="h-4 w-4"></i>
+                <span class="sm:hidden">Help</span>
+                <span class="hidden sm:inline">Help WhatsApp ${SUPPORT_NUMBER_DISPLAY}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
 
     const main = document.querySelector('main');
     if (main) {
