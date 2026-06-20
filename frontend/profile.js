@@ -77,7 +77,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         contactEl.insertAdjacentElement('afterend', copyBtn);
     }
 
-    const ratingSummary = window.SHHub?.getRatingSummaryForUser?.(userId) ?? { average: 0, count: 0 };
+    const computeReviewsSummary = (reviews) => {
+        const count = reviews.length;
+        if (!count) return { average: 0, count: 0 };
+        const total = reviews.reduce((sum, r) => sum + Number(r?.rating ?? 0), 0);
+        const average = total / count;
+        return { average: Number.isFinite(average) ? average : 0, count };
+    };
+    const ratingSummary = computeReviewsSummary(userReviews);
     getElement('user-rating').innerText = ratingSummary.count > 0
         ? `★ ${ratingSummary.average.toFixed(1)} (${ratingSummary.count} reviews)`
         : 'No reviews yet';

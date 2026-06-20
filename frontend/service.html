@@ -405,9 +405,7 @@
                 }
 
                 const safeReviews = Array.isArray(reviews) ? reviews : [];
-                const summaryFromApi = computeSummary(safeReviews);
-                const summaryFromLocal = window.SHHub?.getRatingSummaryForUser?.(providerId);
-                const summary = summaryFromLocal?.count ? summaryFromLocal : summaryFromApi;
+                const summary = computeSummary(safeReviews);
 
                 providerRatingEl.innerText = summary.count > 0
                     ? `★ ${summary.average.toFixed(1)} (${summary.count} review${summary.count === 1 ? '' : 's'})`

@@ -217,7 +217,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   const renderStatsAndHistory = async () => {
-    const summary = window.SHHub?.getRatingSummaryForUser?.(currentUser?._id) ?? { average: 0, count: 0 };
+    let summary = { average: 0, count: 0 };
+    if (isApiMode && window.SHHub?.apiGetReviewsForUser && currentUser?._id) {
+      try {
+        const reviews = await window.SHHub.apiGetReviewsForUser(currentUser._id);
+        const safeReviews = Array.isArray(reviews) ? reviews : [];
+        const count = safeReviews.length;
+        if (count > 0) {
+          const total = safeReviews.reduce((sum, r) => sum + Number(r?.rating ?? 0), 0);
+          summary = { average: total / count, count };
+        }
+      } catch (error) {
+        console.error('Failed to load reviews from API:', error);
+        summary = window.SHHub?.getRatingSummaryForUser?.(currentUser?._id) ?? { average: 0, count: 0 };
+      }
+    } else {
+      summary = window.SHHub?.getRatingSummaryForUser?.(currentUser?._id) ?? { average: 0, count: 0 };
+    }
     ratingStatEl.innerText =
       summary.count > 0 ? `★ ${summary.average.toFixed(1)} (${summary.count})` : 'No reviews yet';
 

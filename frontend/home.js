@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const VALID_SORTS = new Set(['newest', 'rating-desc', 'price-asc', 'price-desc', 'title-asc']);
     let activeListingFilter = 'all';
     let latestRequestId = 0;
+    const apiRatingsCache = new Map();
 
     const BROWSE_CACHE_KEY = 'shhub_browse_cache';
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -61,6 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const getServiceRatingSummary = (service) => {
         const providerId = String(service?.user?._id ?? service?.user ?? '').trim();
         if (!providerId) return { average: 0, count: 0 };
+        if (window.SHHub?.isApiMode?.() && apiRatingsCache.has(providerId)) {
+            return apiRatingsCache.get(providerId);
+        }
         return window.SHHub?.getRatingSummaryForUser?.(providerId) ?? { average: 0, count: 0 };
     };
 
@@ -76,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const getRating = (service) => {
             const providerId = String(service?.user?._id ?? service?.user ?? '').trim();
             if (!providerId) return { average: 0, count: 0 };
+            if (window.SHHub?.isApiMode?.() && apiRatingsCache.has(providerId)) {
+                return apiRatingsCache.get(providerId);
+            }
             if (!ratingCache.has(providerId)) {
                 ratingCache.set(providerId, window.SHHub?.getRatingSummaryForUser?.(providerId) ?? { average: 0, count: 0 });
             }
@@ -276,6 +283,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         services = Array.isArray(services) ? services : [];
+
+        // Fetch rating summaries for all unique providers in parallel
+        if (window.SHHub?.isApiMode?.() && window.SHHub?.apiGetReviewsForUser && services.length > 0) {
+            const providerIds = [...new Set(services.map(s => String(s?.user?._id ?? s?.user ?? '').trim()).filter(Boolean))];
+            const uncachedProviderIds = providerIds.filter(id => !apiRatingsCache.has(id));
+            if (uncachedProviderIds.length > 0) {
+                await Promise.allSettled(uncachedProviderIds.map(async (providerId) => {
+                    try {
+                        const reviews = await window.SHHub.apiGetReviewsForUser(providerId);
+                        const safeReviews = Array.isArray(reviews) ? reviews : [];
+                        const count = safeReviews.length;
+                        if (count > 0) {
+                            const total = safeReviews.reduce((sum, r) => sum + Number(r?.rating ?? 0), 0);
+                            apiRatingsCache.set(providerId, { average: total / count, count });
+                        } else {
+                            apiRatingsCache.set(providerId, { average: 0, count: 0 });
+                        }
+                    } catch (e) {
+                        console.error(`Failed to fetch reviews for provider ${providerId}:`, e);
+                    }
+                }));
+            }
+        }
+
         services = sortServices(services, sortBy);
 
         if (resultCount) {
