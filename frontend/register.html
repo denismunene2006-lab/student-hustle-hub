@@ -10,6 +10,17 @@
     <script defer src="https://accounts.google.com/gsi/client"></script>
     <meta name="description" content="Create a Student Hustle Hub account to post campus services and get discovered.">
     <meta name="api-base-url" content="http://localhost:5000/api">
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem('theme');
+                const theme = savedTheme === 'dark' || savedTheme === 'light'
+                    ? savedTheme
+                    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+            } catch (error) {}
+        })();
+    </script>
     <link rel="stylesheet" href="app.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/lucide@latest"></script>

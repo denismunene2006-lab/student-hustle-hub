@@ -14,6 +14,7 @@ Student Hustle Hub is a full-stack campus marketplace allowing students to seaml
 - Admin dashboard with usage stats and moderation actions
 - Kenyan currency support (KES) and WhatsApp links using `+254...` numbers
 - Mobile-friendly fixed navbar and floating footer
+- Early theme hydration in the `head` prevents dark-mode flash during navigation
 - Browser-side public API caching plus indexed MongoDB query paths
 
 ## Project Structure

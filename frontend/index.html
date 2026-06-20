@@ -11,6 +11,18 @@
 
 <meta name="description" content="Modern campus marketplace for student talent: tutoring, assignment support, design, programming, CV writing, and more.">
 
+<script>
+(function () {
+    try {
+        const savedTheme = localStorage.getItem('theme');
+        const theme = savedTheme === 'dark' || savedTheme === 'light'
+            ? savedTheme
+            : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+    } catch (error) {}
+})();
+</script>
+
 <link rel="stylesheet" href="app.css">
 
 <script src="https://cdn.tailwindcss.com"></script>
