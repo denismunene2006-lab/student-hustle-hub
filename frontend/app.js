@@ -674,6 +674,7 @@
   const deleteReview = (reviewId) => {
     const user = getUser();
     if (!user) throw new Error('Not authenticated');
+    if (!user.isAdmin) throw new Error('Admin access required');
 
     const targetId = String(reviewId ?? '').trim();
     if (!targetId) throw new Error('Review ID is required');
@@ -681,10 +682,6 @@
     const storedReviews = getStoredReviews();
     const index = storedReviews.findIndex((review) => review?._id === targetId);
     if (index >= 0) {
-      const review = storedReviews[index];
-      if (review?.reviewerUserId !== user._id && !user.isAdmin) {
-        throw new Error('Not authorized to delete this review');
-      }
       storedReviews.splice(index, 1);
       setStoredReviews(storedReviews);
       return true;
@@ -692,7 +689,6 @@
 
     const isDemoReview = DEMO_REVIEWS.some((review) => review._id === targetId);
     if (!isDemoReview) return false;
-    if (!user.isAdmin) throw new Error('Only admins can hide demo reviews');
 
     const hiddenIds = getHiddenDemoReviewIds();
     if (!hiddenIds.includes(targetId)) {
@@ -1013,6 +1009,8 @@
   };
 
   const apiDeleteReview = async (reviewId) => {
+    const currentUser = getUser();
+    if (!currentUser?.isAdmin) throw new Error('Admin access required');
     if (!reviewId) throw new Error('Review ID is required');
     await apiRequest(`/reviews/${encodeURIComponent(reviewId)}`, {
       method: 'DELETE',

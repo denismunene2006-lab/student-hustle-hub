@@ -5,7 +5,7 @@ const {
   getReviewsForUser,
   deleteReview,
 } = require('../controllers/reviewController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware');
 
 // Public route to get all reviews for a specific user
 router.get('/user/:id', getReviewsForUser);
@@ -13,6 +13,6 @@ router.get('/user/:id', getReviewsForUser);
 // Private route to create a new review
 router.post('/', protect, createReview);
 
-router.delete('/:id', protect, deleteReview);
+router.delete('/:id', protect, admin, deleteReview);
 
 module.exports = router;

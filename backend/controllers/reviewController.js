@@ -90,9 +90,9 @@ const deleteReview = asyncHandler(async (req, res) => {
     throw new Error('Review not found');
   }
 
-  if (review.reviewerUserId.toString() !== req.user._id.toString() && !req.user.isAdmin) {
-    res.status(401);
-    throw new Error('Not authorized to delete this review');
+  if (!req.user?.isAdmin) {
+    res.status(403);
+    throw new Error('Admin access required');
   }
 
   await review.deleteOne();
