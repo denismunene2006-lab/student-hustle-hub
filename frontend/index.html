@@ -78,16 +78,85 @@ Discover tutoring, assignment support, design, programming, CV writing, and more
 
 <section class="mt-10 rounded-3xl border border-slate-200/70 bg-white/55 p-4 shadow-[0_18px_42px_-34px_rgba(15,23,42,.45)] backdrop-blur-sm dark:border-slate-700/60 dark:bg-slate-950/35 sm:p-6">
 
-<div class="mb-4 flex items-end justify-between gap-4">
+<div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+<div>
 <h2 class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
 Services
 </h2>
 
-<p id="result-count" class="text-sm text-slate-600 dark:text-slate-300"></p>
+<p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+Search, filter, and sort listings to find the right student service faster.
+</p>
+</div>
+
+<p id="result-count" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></p>
 
 </div>
 
-<div id="services-grid" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+<div class="rounded-2xl border border-slate-200/70 bg-white/70 p-4 shadow-sm dark:border-slate-700/60 dark:bg-slate-950/40">
+<div class="grid gap-4 xl:grid-cols-12">
+<label class="block xl:col-span-4">
+<span class="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+Search
+</span>
+<input id="search" type="search" placeholder="Search by title or description" class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400">
+</label>
+
+<label class="block xl:col-span-3">
+<span class="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+Category
+</span>
+<select id="category" class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white">
+<option value="">All categories</option>
+<option value="Tutoring">Tutoring</option>
+<option value="Assignment Help">Assignment Help</option>
+<option value="Graphic Design">Graphic Design</option>
+<option value="Programming Help">Programming Help</option>
+<option value="CV Writing">CV Writing</option>
+<option value="Phone Repair">Phone Repair</option>
+<option value="Electronics">Electronics</option>
+<option value="Furniture">Furniture</option>
+<option value="Photography">Photography</option>
+<option value="Other">Other</option>
+</select>
+</label>
+
+<label class="block xl:col-span-3">
+<span class="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+Sort by
+</span>
+<select id="sort" class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white">
+<option value="newest">Newest first</option>
+<option value="rating-desc">Top rated</option>
+<option value="price-asc">Price: low to high</option>
+<option value="price-desc">Price: high to low</option>
+<option value="title-asc">Title: A-Z</option>
+</select>
+</label>
+
+<div class="flex items-end xl:col-span-2">
+<button id="clear-filters" type="button" class="inline-flex h-12 w-full items-center justify-center rounded-xl border border-slate-200/70 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60">
+Reset
+</button>
+</div>
+</div>
+
+<div class="mt-4 flex flex-wrap gap-2">
+<button type="button" data-listing-filter="all" aria-pressed="true" class="inline-flex items-center gap-2 rounded-full border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95">
+All listings
+</button>
+
+<button type="button" data-listing-filter="seller" aria-pressed="false" class="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60">
+Seller offers
+</button>
+
+<button type="button" data-listing-filter="buyer" aria-pressed="false" class="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60">
+Buyer requests
+</button>
+</div>
+</div>
+
+<div id="services-grid" class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 
 <div class="glass rounded-2xl p-6 text-center text-sm text-slate-600 dark:text-slate-300">
 Loading services...

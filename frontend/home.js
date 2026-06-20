@@ -2,10 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const servicesGrid = document.getElementById('services-grid');
     const searchInput = document.getElementById('search');
     const categorySelect = document.getElementById('category');
+    const sortSelect = document.getElementById('sort');
     const clearBtn = document.getElementById('clear-filters');
     const resultCount = document.getElementById('result-count');
     const listingFilterButtons = Array.from(document.querySelectorAll('[data-listing-filter]'));
+    const DEFAULT_SORT = 'newest';
+    const VALID_SORTS = new Set(['newest', 'rating-desc', 'price-asc', 'price-desc', 'title-asc']);
     let activeListingFilter = 'all';
+    let latestRequestId = 0;
 
     const BROWSE_CACHE_KEY = 'shhub_browse_cache';
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -54,6 +58,57 @@ document.addEventListener('DOMContentLoaded', () => {
         return STUDENT_THEMES[hashKey(key) % STUDENT_THEMES.length];
     };
 
+    const getServiceRatingSummary = (service) => {
+        const providerId = String(service?.user?._id ?? service?.user ?? '').trim();
+        if (!providerId) return { average: 0, count: 0 };
+        return window.SHHub?.getRatingSummaryForUser?.(providerId) ?? { average: 0, count: 0 };
+    };
+
+    const getServiceCreatedAtValue = (service) => {
+        const timestamp = new Date(service?.createdAt ?? 0).getTime();
+        return Number.isFinite(timestamp) ? timestamp : 0;
+    };
+
+    const sortServices = (services, sortBy = DEFAULT_SORT) => {
+        const items = Array.isArray(services) ? [...services] : [];
+        const ratingCache = new Map();
+
+        const getRating = (service) => {
+            const providerId = String(service?.user?._id ?? service?.user ?? '').trim();
+            if (!providerId) return { average: 0, count: 0 };
+            if (!ratingCache.has(providerId)) {
+                ratingCache.set(providerId, window.SHHub?.getRatingSummaryForUser?.(providerId) ?? { average: 0, count: 0 });
+            }
+            return ratingCache.get(providerId);
+        };
+
+        const getTitle = (service) => String(service?.title ?? '').trim().toLowerCase();
+        const getPrice = (service) => Number(service?.price ?? 0) || 0;
+        const newestFirst = (a, b) => getServiceCreatedAtValue(b) - getServiceCreatedAtValue(a) || getTitle(a).localeCompare(getTitle(b));
+
+        switch (sortBy) {
+            case 'price-asc':
+                return items.sort((a, b) => getPrice(a) - getPrice(b) || newestFirst(a, b));
+            case 'price-desc':
+                return items.sort((a, b) => getPrice(b) - getPrice(a) || newestFirst(a, b));
+            case 'title-asc':
+                return items.sort((a, b) => getTitle(a).localeCompare(getTitle(b)) || newestFirst(a, b));
+            case 'rating-desc':
+                return items.sort((a, b) => {
+                    const ratingA = getRating(a);
+                    const ratingB = getRating(b);
+                    const averageDiff = Number(ratingB.average ?? 0) - Number(ratingA.average ?? 0);
+                    if (averageDiff) return averageDiff;
+                    const countDiff = Number(ratingB.count ?? 0) - Number(ratingA.count ?? 0);
+                    if (countDiff) return countDiff;
+                    return newestFirst(a, b);
+                });
+            case 'newest':
+            default:
+                return items.sort(newestFirst);
+        }
+    };
+
     const renderServiceCard = (service) => {
         const theme = getStudentTheme(service);
         const cardStyle = `--accent-1:${theme.from}; --accent-2:${theme.to}; --accent-rgb:${theme.rgb};`;
@@ -66,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const rawContactInfo = String(service?.contactInfo ?? '').trim();
         const whatsappNumber = window.SHHub?.toWhatsAppNumber?.(rawContactInfo) || '';
         const providerId = String(provider._id ?? '');
-        const ratingSummary = window.SHHub?.getRatingSummaryForUser?.(providerId) ?? { average: 0, count: 0 };
+        const ratingSummary = getServiceRatingSummary(service);
         const ratingText = ratingSummary.count > 0
             ? `★ ${ratingSummary.average.toFixed(1)} (${ratingSummary.count})`
             : 'No reviews yet';
@@ -131,19 +186,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const params = new URLSearchParams();
         const keyword = searchInput?.value.trim() ?? '';
         const category = categorySelect?.value ?? '';
+        const sort = VALID_SORTS.has(sortSelect?.value ?? '') ? sortSelect.value : DEFAULT_SORT;
 
         if (keyword) params.set('q', keyword);
         if (category) params.set('category', category);
         if (activeListingFilter !== 'all') params.set('type', activeListingFilter);
+        if (sort !== DEFAULT_SORT) params.set('sort', sort);
 
-        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        const queryString = params.toString();
+        const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
         // Use replaceState to avoid polluting browser history on every keystroke
         window.history.replaceState({ path: newUrl }, '', newUrl);
     };
 
     async function fetchServices() {
+        const requestId = ++latestRequestId;
         const keyword = searchInput?.value.trim().toLowerCase() ?? '';
         const category = categorySelect?.value ?? '';
+        const sortBy = VALID_SORTS.has(sortSelect?.value ?? '') ? sortSelect.value : DEFAULT_SORT;
 
         // Performance: Load from cache first for an "instant" feel
         const cachedData = localStorage.getItem(BROWSE_CACHE_KEY);
@@ -151,7 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const parsed = JSON.parse(cachedData);
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    servicesGrid.innerHTML = parsed.map(renderServiceCard).join('');
+                    const sortedCache = sortServices(parsed, sortBy);
+                    servicesGrid.innerHTML = sortedCache.map(renderServiceCard).join('');
+                    if (resultCount) {
+                        resultCount.innerText = `${sortedCache.length} result${sortedCache.length === 1 ? '' : 's'}`;
+                    }
                     window.SHHub?.refreshIcons?.();
                 }
             } catch (e) { console.error("Cache parse failed", e); }
@@ -189,12 +253,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     category,
                     listingType: activeListingFilter === 'all' ? '' : activeListingFilter,
                 });
+
+                if (requestId !== latestRequestId) return;
                 
                 // Update cache if this was a general browse (no filters)
                 if (!keyword && !category && activeListingFilter === 'all') {
                     localStorage.setItem(BROWSE_CACHE_KEY, JSON.stringify(services));
                 }
             } catch (error) {
+                if (requestId !== latestRequestId) return;
                 // Log the actual error to the console for debugging
                 console.error("Failed to fetch services from API:", error);
                 
@@ -209,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         services = Array.isArray(services) ? services : [];
+        services = sortServices(services, sortBy);
 
         if (resultCount) {
             resultCount.innerText = `${services.length} result${services.length === 1 ? '' : 's'}`;
@@ -252,6 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
         listingFilterButtons.forEach((button) => {
             const buttonFilter = button.getAttribute('data-listing-filter');
             const isActive = buttonFilter === filterValue;
+            button.setAttribute('aria-pressed', String(isActive));
             button.classList.toggle('bg-primary', isActive);
             button.classList.toggle('text-white', isActive);
             button.classList.toggle('border-primary', isActive);
@@ -264,6 +333,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const params = new URLSearchParams(window.location.search);
         if (searchInput) searchInput.value = params.get('q') || '';
         if (categorySelect) categorySelect.value = params.get('category') || '';
+        if (sortSelect) {
+            const sortValue = params.get('sort') || DEFAULT_SORT;
+            sortSelect.value = VALID_SORTS.has(sortValue) ? sortValue : DEFAULT_SORT;
+        }
         const listingType = params.get('type') || 'all';
         updateListingFilterUI(listingType);
     };
@@ -274,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         searchInput?.addEventListener('input', debounce(fetchServices, 300));
         categorySelect?.addEventListener('change', fetchServices);
+        sortSelect?.addEventListener('change', fetchServices);
         listingFilterButtons.forEach((button) => {
             button.addEventListener('click', () => {
                 const filter = button.getAttribute('data-listing-filter') || 'all';
@@ -284,6 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearBtn?.addEventListener('click', () => {
             if (searchInput) searchInput.value = '';
             if (categorySelect) categorySelect.value = '';
+            if (sortSelect) sortSelect.value = DEFAULT_SORT;
             updateListingFilterUI('all');
             fetchServices();
         });
