@@ -16,6 +16,7 @@ Student Hustle Hub is a full-stack campus marketplace allowing students to seaml
 - Mobile-friendly fixed navbar and floating footer
 - Browse page search, filters, and sorting for faster service discovery
 - Early theme hydration in the `head` prevents dark-mode flash during navigation
+- Shared shell bootstrap keeps theme, navbar, and footer markup consistent across pages
 - Browser-side public API caching plus indexed MongoDB query paths
 
 ## Project Structure
@@ -30,6 +31,7 @@ The project is organized into two main directories: `frontend` and `backend`.
     -   `.html` files for all pages.
     -   `.js` files for client-side logic.
     -   `app.css` for styling.
+    -   `site-shell.js`: Shared head bootstrap plus navbar/footer templates.
 
 ## Run Locally
 

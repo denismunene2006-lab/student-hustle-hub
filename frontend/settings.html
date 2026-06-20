@@ -9,39 +9,15 @@
     <link rel="preconnect" href="https://unpkg.com">
     <meta name="description" content="Configure Student Hustle Hub API connection for production or local use.">
     <meta name="api-base-url" content="http://localhost:5000/api">
-    <script>
-        (function () {
-            try {
-                const savedTheme = localStorage.getItem('theme');
-                const theme = savedTheme === 'dark' || savedTheme === 'light'
-                    ? savedTheme
-                    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                document.documentElement.classList.toggle('dark', theme === 'dark');
-            } catch (error) {}
-        })();
-    </script>
+    <script src="site-shell.js"></script>
     <link rel="stylesheet" href="app.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/lucide@latest"></script>
     <script defer src="config.js"></script>
     <script defer src="app.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#0F766E',
-                        secondary: '#F59E0B',
-                    }
-                }
-            }
-        }
-    </script>
 </head>
 <body class="min-h-screen antialiased text-slate-900 dark:text-slate-100" data-requires-auth="true">
     <div class="app-bg"></div>
-    <header id="app-navbar"></header>
 
     <main class="mx-auto max-w-4xl px-4 pb-16 pt-10">
         <section id="settings-denied" class="hidden glass rounded-2xl p-10 text-center shadow-sm">

@@ -11,17 +11,7 @@
 
 <meta name="description" content="Modern campus marketplace for student talent: tutoring, assignment support, design, programming, CV writing, and more.">
 
-<script>
-(function () {
-    try {
-        const savedTheme = localStorage.getItem('theme');
-        const theme = savedTheme === 'dark' || savedTheme === 'light'
-            ? savedTheme
-            : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.classList.toggle('dark', theme === 'dark');
-    } catch (error) {}
-})();
-</script>
+<script src="site-shell.js"></script>
 
 <link rel="stylesheet" href="app.css">
 
@@ -31,28 +21,11 @@
 <script defer src="config.js"></script>
     <script defer src="app.js"></script>
 
-<script>
-tailwind.config = {
-darkMode: 'class',
-theme: {
-extend: {
-colors: {
-primary: '#0F766E',
-secondary: '#F59E0B',
-}
-}
-}
-}
-</script>
-
 </head>
 
 <body class="min-h-screen antialiased text-slate-900 dark:text-slate-100">
 
 <div class="app-bg"></div>
-
-<header id="app-navbar"></header>
-
 <main class="mx-auto max-w-7xl px-4 pb-16 pt-10">
 
 <section class="hero-shell mx-auto max-w-4xl rounded-3xl px-6 py-10 text-center sm:px-10">

@@ -10,39 +10,15 @@
     <script defer src="https://accounts.google.com/gsi/client"></script>
     <meta name="description" content="Login to Student Hustle Hub to post and manage your campus services.">
     <meta name="api-base-url" content="http://localhost:5000/api">
-    <script>
-        (function () {
-            try {
-                const savedTheme = localStorage.getItem('theme');
-                const theme = savedTheme === 'dark' || savedTheme === 'light'
-                    ? savedTheme
-                    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                document.documentElement.classList.toggle('dark', theme === 'dark');
-            } catch (error) {}
-        })();
-    </script>
+    <script src="site-shell.js"></script>
     <link rel="stylesheet" href="app.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/lucide@latest"></script>
     <script defer src="config.js"></script>
     <script defer src="app.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#0F766E',
-                        secondary: '#F59E0B',
-                    }
-                }
-            }
-        }
-    </script>
 </head>
 <body class="min-h-screen antialiased text-slate-900 dark:text-slate-100">
     <div class="app-bg"></div>
-    <header id="app-navbar"></header>
 
     <main class="mx-auto flex max-w-7xl items-center justify-center px-4 py-12">
         <section class="w-full max-w-md glass rounded-2xl p-6 shadow-sm sm:p-8">
