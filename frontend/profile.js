@@ -62,6 +62,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     contentEl.classList.remove('hidden');
 
+    window.SHHubSEO?.setPageMeta?.({
+        title: `${user.name ?? 'Student'} — Profile | Student Hustle Hub`,
+        description: window.SHHubSEO?.truncate?.(
+            `${user.name ?? 'Student'}${user.university ? ` at ${user.university}` : ''}. View campus services, ratings, and reviews on Student Hustle Hub.`
+        ) ?? `${user.name ?? 'Student'} on Student Hustle Hub.`,
+        path: `profile.html?id=${encodeURIComponent(userId ?? '')}`,
+        image: user.image || window.SHHubSEO.DEFAULT_OG_IMAGE,
+        type: 'profile',
+    });
+
     // Render Profile Info
     getElement('profile-img').src = user.image || `https://i.pravatar.cc/150?u=${encodeURIComponent(user.email)}`;
     getElement('user-name').innerText = user.name;

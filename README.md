@@ -3,7 +3,7 @@
 Student Hustle Hub is a full-stack campus marketplace allowing students to seamlessly switch between buying and selling services. It manages the complete order lifecycle—from request to delivery—and builds community trust through a robust rating and review system.
 
  **link**:
- 🔗https://student-hustle-hub.vercel.app
+ 🔗 [https://student-hustle-hub.vercel.app](https://student-hustle-hub.vercel.app)
  
 ## Highlights
 - Student accounts with editable profiles
@@ -17,6 +17,7 @@ Student Hustle Hub is a full-stack campus marketplace allowing students to seaml
 - Browse page search, filters, and sorting for faster service discovery
 - Early theme hydration in the `head` prevents dark-mode flash during navigation
 - Browser-side public API caching plus indexed MongoDB query paths
+- Search engine optimization (SEO) metadata, structured data, sitemap, and Google Search Console verification
 
 ## Project Structure
 
@@ -28,8 +29,9 @@ The project is organized into two main directories: `frontend` and `backend`.
     -   `package.json`: Backend dependencies.
 -   `frontend/`: Contains all the client-side static files (HTML, CSS, JS).
     -   `.html` files for all pages.
-    -   `.js` files for client-side logic.
+    -   `.js` files for client-side logic (`app.js`, `home.js`, `js/seo.js`, etc.).
     -   `app.css` for styling.
+    -   `robots.txt` and `sitemap.xml` for search engine crawling.
 
 ## Run Locally
 
@@ -95,6 +97,25 @@ The app includes a few lightweight speed optimizations that do not change the UI
 - After create, update, delete, profile, review, or admin moderation actions, the frontend clears cached public data so fresh content loads.
 
 For production databases with a lot of existing data, confirm the declared indexes exist in MongoDB Atlas. If your production setup disables automatic index creation, create the equivalent indexes manually.
+
+## SEO & Search Console
+
+The frontend includes metadata-only SEO improvements that do not change the UI or app behavior:
+
+- **Page metadata** on every HTML page: titles, descriptions, canonical URLs, Open Graph, and Twitter Card tags.
+- **Structured data** (JSON-LD) on the homepage for `WebSite`, `Organization`, and site search.
+- **Dynamic metadata** on `service.html` and `profile.html` via `frontend/js/seo.js` when listing or profile data loads.
+- **`frontend/robots.txt`** — allows public pages; blocks admin, dashboard, settings, and create-service routes.
+- **`frontend/sitemap.xml`** — lists indexable static pages for crawlers.
+- **Google Search Console verification** — the homepage includes the HTML meta verification tag.
+
+After deploying the frontend, submit your sitemap in [Google Search Console](https://search.google.com/search-console):
+
+```
+https://student-hustle-hub.vercel.app/sitemap.xml
+```
+
+Production site URL: [https://student-hustle-hub.vercel.app](https://student-hustle-hub.vercel.app)
 
 ## Deploy
 

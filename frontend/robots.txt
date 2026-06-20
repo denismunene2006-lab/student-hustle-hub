@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /dashboard.html
+Disallow: /settings.html
+Disallow: /create-service.html
+
+Sitemap: https://student-hustle-hub.vercel.app/sitemap.xml
