@@ -35,7 +35,7 @@
 - [🔍 SEO & Search Console](#-seo--search-console)
 - [🌐 Deployment](#-deployment)
   - [Backend on Render](#backend-on-render)
-  - [Frontend on Netlify](#frontend-on-netlify)
+  - [Frontend on Vercel](#frontend-on-vercel)
   - [Database on MongoDB Atlas](#database-on-mongodb-atlas)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
@@ -85,7 +85,7 @@
 | **Backend**   | Node.js, Express.js                                                           |
 | **Database**  | MongoDB with Mongoose ODM                                                     |
 | **Auth**      | bcrypt (passwords), JSON Web Tokens (sessions), Google OAuth 2.0              |
-| **Hosting**   | [Netlify](https://www.netlify.com) (frontend) + [Render](https://render.com) (backend) |
+| **Hosting**   | [Vercel](https://vercel.com) (frontend) + [Render](https://render.com) (backend) |
 | **Deploy**    | `netlify.toml` + `render.yaml` for automated deployment                       |
 
 ---
@@ -131,7 +131,7 @@ student-hustle-hub/
 │   └── sitemap.xml            # Search engine sitemap
 │
 ├── scripts/                   # Development helper scripts
-├── netlify.toml               # Netlify deployment config
+├── netlify.toml               # Netlify (or Vercel) deployment config
 ├── render.yaml                # Render deployment config
 ├── package.json               # Workspace-level config
 └── README.md
@@ -257,7 +257,7 @@ https://student-hustle-hub.vercel.app/sitemap.xml
 | Service  | What        | Cost  |
 | -------- | ----------- | ----- |
 | **Render** | Backend API | Free  |
-| **Netlify** | Frontend    | Free  |
+| **Vercel** | Frontend    | Free  |
 | **MongoDB Atlas** | Database | Free tier |
 
 #### Backend — Render
@@ -273,12 +273,13 @@ https://student-hustle-hub.vercel.app/sitemap.xml
    - `GOOGLE_CLIENT_ID` — from Google Cloud Console
 6. Deploy. Free services may spin down after ~15 min of inactivity.
 
-#### Frontend — Netlify
+#### Frontend — Vercel
 
-1. Connect your GitHub repo → **New site from Git**
-2. **Build command:** *(leave empty)*
-3. **Publish directory:** `frontend`
-4. Deploy. A `netlify.toml` is included for optimal defaults.
+1. Connect your GitHub repo → **New Project**
+2. Set **Root Directory** to `frontend`
+3. **Build command:** *(leave empty)*
+4. **Output directory:** *(leave default — Vercel auto-detects `frontend`)*
+5. Deploy. The project includes a `vercel.json` (or use the default static config).
 
 #### Database — MongoDB Atlas
 
@@ -298,7 +299,7 @@ Commit and redeploy the frontend.
 
 ### Alternative Hosting
 
-- **Frontend:** Vercel, GitHub Pages, Cloudflare Pages
+- **Frontend:** Netlify, GitHub Pages, Cloudflare Pages
 - **Backend:** Railway, Cyclic, Fly.io
 - **Database:** MongoDB Atlas (any region)
 
