@@ -1,166 +1,341 @@
-# Student Hustle Hub💵💲
+# 🎓 Student Hustle Hub — Campus Marketplace
 
-Student Hustle Hub is a full-stack campus marketplace allowing students to seamlessly switch between buying and selling services. It manages the complete order lifecycle—from request to delivery—and builds community trust through a robust rating and review system.
+<p align="center">
+  <img src="https://img.shields.io/badge/status-live-brightgreen?style=flat-square" alt="Status">
+  <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/frontend-vanilla_JS-yellow?style=flat-square" alt="Frontend">
+  <img src="https://img.shields.io/badge/backend-Node.js%20%7C%20Express-339933?style=flat-square&logo=node.js&logoColor=white" alt="Backend">
+  <img src="https://img.shields.io/badge/database-MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="Database">
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome">
+</p>
 
- **link**:
- 🔗 [https://student-hustle-hub.vercel.app](https://student-hustle-hub.vercel.app)
- 
-## Highlights
-- Student accounts with editable profiles
-- Email/password and Google sign-in
-- Buyer/Seller mode switch per user
-- Service posting and service editing
+<p align="center">
+  <strong>A full-stack campus marketplace where students seamlessly switch between buying and selling services.</strong><br>
+  Manage the complete order lifecycle — from request to delivery — and build community trust through ratings and reviews.
+</p>
+
+<p align="center">
+  🔗 <a href="https://student-hustle-hub.vercel.app">https://student-hustle-hub.vercel.app</a>
+</p>
+
+---
+
+## 📋 Table of Contents
+
+- [✨ Features](#-features)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [📁 Project Structure](#-project-structure)
+- [🚀 Run Locally](#-run-locally)
+  - [Backend Setup](#backend-setup)
+  - [Frontend Setup](#frontend-setup)
+  - [Google Sign-In Setup](#google-sign-in-setup)
+  - [Seed Demo Data](#seed-demo-data)
+  - [Admin Access](#admin-access)
+- [📈 Performance Optimizations](#-performance-optimizations)
+- [🔍 SEO & Search Console](#-seo--search-console)
+- [🌐 Deployment](#-deployment)
+  - [Backend on Render](#backend-on-render)
+  - [Frontend on Netlify](#frontend-on-netlify)
+  - [Database on MongoDB Atlas](#database-on-mongodb-atlas)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [⭐ Support](#-support)
+
+---
+
+## ✨ Features
+
+### 👤 User Management
+- Student accounts with fully editable profiles
+- Email/password registration & login
+- Google OAuth single sign-on
+- Profile photos and bio
+
+### 🔄 Buyer / Seller Mode
+- Seamless mode switching per user
+- **As a Buyer:** Browse services, place orders, leave reviews
+- **As a Seller:** Post services, edit listings, fulfil orders
+
+### 💼 Services Marketplace
+- Service posting with descriptions, pricing, and images
+- Browse page with search, filters, and sorting for fast discovery
+- Detailed service pages with seller info and ratings
+
+### ⭐ Trust & Safety
 - Ratings and reviews for each student provider
-- Admin dashboard with usage stats and moderation actions
-- Kenyan currency support (KES) and WhatsApp links using `+254...` numbers
-- Mobile-friendly fixed navbar and floating footer
-- Browse page search, filters, and sorting for faster service discovery
-- Early theme hydration in the `head` prevents dark-mode flash during navigation
-- Browser-side public API caching plus indexed MongoDB query paths
-- Search engine optimization (SEO) metadata, structured data, sitemap, and Google Search Console verification
+- Admin dashboard with usage statistics and moderation actions
+- Report system for inappropriate content
 
-## Project Structure
+### 💰 Payment & Contact
+- Kenyan Shilling (KES) currency support
+- WhatsApp direct messaging with `+254...` number formatting
 
-The project is organized into two main directories: `frontend` and `backend`.
+### 🎨 UI/UX
+- **Mobile-first responsive design** — fixed navbar and floating footer
+- **Dark mode** — early theme hydration in `<head>` prevents flash during navigation
+- **Smooth navigation** — single-page-app feel with traditional HTML pages
 
--   `backend/`: Contains the Node.js, Express, and MongoDB server application.
-    -   `controllers/`, `middleware/`, `models/`, `routes/`, `config/`
-    -   `server.js`: The main entry point for the API.
-    -   `package.json`: Backend dependencies.
--   `frontend/`: Contains all the client-side static files (HTML, CSS, JS).
-    -   `.html` files for all pages.
-    -   `.js` files for client-side logic (`app.js`, `home.js`, `js/seo.js`, etc.).
-    -   `app.css` for styling.
-    -   `robots.txt` and `sitemap.xml` for search engine crawling.
+---
 
-## Run Locally
+## 🛠️ Tech Stack
 
-You will need two terminal windows open to run both the frontend and backend simultaneously.
+| Layer       | Technology                                                                    |
+| ----------- | ----------------------------------------------------------------------------- |
+| **Frontend**  | HTML5, CSS3, Vanilla JavaScript (no framework)                                |
+| **Backend**   | Node.js, Express.js                                                           |
+| **Database**  | MongoDB with Mongoose ODM                                                     |
+| **Auth**      | bcrypt (passwords), JSON Web Tokens (sessions), Google OAuth 2.0              |
+| **Hosting**   | [Netlify](https://www.netlify.com) (frontend) + [Render](https://render.com) (backend) |
+| **Deploy**    | `netlify.toml` + `render.yaml` for automated deployment                       |
 
-### Backend
-1.  Navigate to the backend directory:
-    ```sh
-    cd backend
-    ```
-2.  Install dependencies:
-    ```sh
-    npm install
-    ```
-3.  Create your environment file from the example (use `cp` on Mac/Linux):
-    ```sh
-    copy .env.example .env
-    ```
-4.  Update the `.env` file with your MongoDB connection string and a JWT secret.
-5.  Start the backend server:
-    ```sh
-    npm run dev
-    ```
-    The API will be running on `http://localhost:5000`.
+---
+
+## 📁 Project Structure
+
+```
+student-hustle-hub/
+├── backend/                   # Node.js + Express API server
+│   ├── config/                # Database & app configuration
+│   ├── controllers/           # Route handler logic
+│   ├── middleware/             # Auth, validation, error handling
+│   ├── models/                # Mongoose schemas (User, Service, Review, etc.)
+│   ├── routes/                # Express route definitions
+│   ├── scripts/               # Seed data & admin promotion utilities
+│   ├── utils/                 # Helper functions
+│   ├── .env.example           # Environment variable template
+│   ├── server.js              # API entry point
+│   └── package.json
+│
+├── frontend/                  # Client-side static files
+│   ├── assets/                # Images, icons, fonts
+│   ├── js/                    # Client-side JavaScript modules
+│   │   └── seo.js             # Dynamic SEO metadata injection
+│   ├── app.css                # Global stylesheet
+│   ├── app.js                 # Shared client logic
+│   ├── config.js              # Frontend configuration (API URL, Google Client ID)
+│   ├── dashboard.js           # Dashboard page logic
+│   ├── home.js                # Homepage logic
+│   ├── profile.js             # Profile page logic
+│   ├── index.html             # Homepage
+│   ├── login.html             # Login page
+│   ├── register.html          # Registration page
+│   ├── dashboard.html         # User dashboard
+│   ├── profile.html           # User profile page
+│   ├── service.html           # Service detail page
+│   ├── create-service.html    # Create / edit service
+│   ├── admin.html             # Admin moderation panel
+│   ├── settings.html          # User settings
+│   ├── guidelines.html        # Community guidelines
+│   ├── terms.html             # Terms of service
+│   ├── robots.txt             # Crawler instructions
+│   └── sitemap.xml            # Search engine sitemap
+│
+├── scripts/                   # Development helper scripts
+├── netlify.toml               # Netlify deployment config
+├── render.yaml                # Render deployment config
+├── package.json               # Workspace-level config
+└── README.md
+```
+
+---
+
+## 🚀 Run Locally
+
+> **Prerequisites:** [Node.js](https://nodejs.org/) 18+ and [MongoDB](https://www.mongodb.com/) (local or Atlas).
+>
+> You'll need **two terminal windows** — one for the backend and one for the frontend.
+
+### Backend Setup
+
+```sh
+cd backend
+npm install
+copy .env.example .env   # Windows
+# or on Mac/Linux: cp .env.example .env
+```
+
+Edit `.env` and add your **MongoDB connection string** and a **JWT secret**.
+
+```sh
+npm run dev
+```
+
+The API starts at **`http://localhost:5000`**.
+
+### Frontend Setup
+
+Open the `frontend/` folder in VS Code and use the **Live Server** extension (or any HTTP server):
+
+```sh
+# Option 1: VS Code Live Server (right-click index.html → Open with Live Server)
+# Option 2: Use Node.js
+cd frontend
+npx serve .
+```
+
+The site opens — usually at **`http://127.0.0.1:5500`**.
+
+By default, the app connects to `http://localhost:5000`. You can change the API URL on the **settings page** once logged in.
 
 ### Google Sign-In Setup
-To enable Google login and sign up:
-1. Create a Google OAuth client ID for a web application in Google Cloud Console.
-2. Add your backend URL and frontend origin to the authorized JavaScript origins.
-3. Set `GOOGLE_CLIENT_ID` in `backend/.env`.
-4. Set `window.SHHub_GOOGLE_CLIENT_ID` in `frontend/config.js`.
+
+1. Create a **Google OAuth 2.0 Client ID** for a Web Application in the [Google Cloud Console](https://console.cloud.google.com/).
+2. Add `http://localhost:5000` and `http://127.0.0.1:5500` to the **Authorized JavaScript origins**.
+3. Set the client ID in your environment:
+   ```sh
+   # backend/.env
+   GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   ```
+4. Set it in the frontend config:
+   ```js
+   // frontend/config.js
+   window.SHHub_GOOGLE_CLIENT_ID = 'your-client-id.apps.googleusercontent.com';
+   ```
 5. Restart the backend and refresh the frontend.
 
-### Optional: Seed Demo Data
-If you want sample users/services in your local database, run:
+### Seed Demo Data
+
+Populate your local database with sample users and services:
+
 ```sh
 cd backend
 node scripts/seedDemo.js --confirm
 ```
-This adds 3 demo users and services (prices KES 200–1000). It does nothing unless you pass `--confirm`.
 
-### Admin Access (Manual)
-If the Admin button does not appear, you can manually promote your account:
+This adds **3 demo users** and their services (prices KES 200–1000). **It does nothing without `--confirm`.**
+
+### Admin Access
+
+If the **Admin** button doesn't appear in the navbar, promote your account manually:
+
 ```sh
 cd backend
 node scripts/makeAdmin.js --email you@example.com
 ```
-Then log out and log back in.
 
-### Frontend
-1.  Open the `frontend/index.html` file in your browser using a live server extension (like VS Code's "Live Server").
-2.  The site will open, likely at `http://127.0.0.1:5500`.
-3.  The app will automatically connect to your local backend. If you need to change the API URL, you can do so on the `settings.html` page.
+Log out, then log back in to see the admin panel.
 
-## Performance Notes
+---
 
-The app includes a few lightweight speed optimizations that do not change the UI:
+## 📈 Performance Optimizations
 
-- Public frontend API reads such as services, service details, public profiles, and reviews use a short browser cache for faster repeat loads.
-- Public API responses send short private cache headers, so browsers can reuse recent data without exposing it through shared caches.
-- MongoDB models declare indexes for common service, review, job, report, and admin query patterns.
-- Read-heavy backend list/detail queries use lean MongoDB results to reduce server-side overhead.
-- After create, update, delete, profile, review, or admin moderation actions, the frontend clears cached public data so fresh content loads.
+The app includes lightweight performance tweaks with zero UI impact:
 
-For production databases with a lot of existing data, confirm the declared indexes exist in MongoDB Atlas. If your production setup disables automatic index creation, create the equivalent indexes manually.
+- **📦 Browser-side caching** — Public API reads (services, profiles, reviews) are cached in memory for faster repeat loads
+- **🔒 Cache headers** — Public endpoints send `private` cache headers so browsers reuse data without exposing it through shared caches
+- **🗄️ MongoDB indexes** — Models declare indexes for common query patterns (services, reviews, jobs, reports, admin)
+- **⚡ Lean queries** — Read-heavy list/detail endpoints use `.lean()` to reduce server overhead
+- **🔄 Cache invalidation** — After create, update, delete, review, or moderation actions, the frontend clears stale cached data
 
-## SEO & Search Console
+> **Note:** For production databases with large existing datasets, verify indexes exist in MongoDB Atlas. If auto-index creation is disabled, create equivalent indexes manually.
 
-The frontend includes metadata-only SEO improvements that do not change the UI or app behavior:
+---
 
-- **Page metadata** on every HTML page: titles, descriptions, canonical URLs, Open Graph, and Twitter Card tags.
-- **Structured data** (JSON-LD) on the homepage for `WebSite`, `Organization`, and site search.
-- **Dynamic metadata** on `service.html` and `profile.html` via `frontend/js/seo.js` when listing or profile data loads.
-- **`frontend/robots.txt`** — allows public pages; blocks admin, dashboard, settings, and create-service routes.
-- **`frontend/sitemap.xml`** — lists indexable static pages for crawlers.
-- **Google Search Console verification** — the homepage includes the HTML meta verification tag.
+## 🔍 SEO & Search Console
 
-After deploying the frontend, submit your sitemap in [Google Search Console](https://search.google.com/search-console):
+Metadata-focused SEO improvements — no UI changes:
+
+- **Page metadata** — Titles, descriptions, canonical URLs, Open Graph, and Twitter Card tags on every HTML page
+- **Structured data** — JSON-LD on the homepage for `WebSite`, `Organization`, and site search
+- **Dynamic metadata** — `frontend/js/seo.js` injects listing/profile data into `service.html` and `profile.html`
+- **`robots.txt`** — Allows public pages; blocks admin, dashboard, settings, and create-service
+- **`sitemap.xml`** — Lists all indexable static pages for crawlers
+- **Google Search Console** — HTML meta verification tag on the homepage
+
+After deployment, submit your sitemap:
 
 ```
 https://student-hustle-hub.vercel.app/sitemap.xml
 ```
 
-Production site URL: [https://student-hustle-hub.vercel.app](https://student-hustle-hub.vercel.app)
+---
 
-## Deploy
+## 🌐 Deployment
 
-This structure is ideal for deployment.
+### Recommended Free Setup
 
-### Recommended Free Setup (Netlify + Render)
-This keeps hosting free and simple.
+| Service  | What        | Cost  |
+| -------- | ----------- | ----- |
+| **Render** | Backend API | Free  |
+| **Netlify** | Frontend    | Free  |
+| **MongoDB Atlas** | Database | Free tier |
 
-**Backend (Render – Free Web Service)**
-1. Connect your repo on Render and choose **New → Web Service**.
-2. Set **Root Directory** to `backend`.
-3. Build command: `npm install`
-4. Start command: `npm start`
-5. Set env vars:
-   - `MONGO_URI`
-   - `JWT_SECRET`
-   - `ADMIN_EMAILS` (comma-separated)
-    - `GOOGLE_CLIENT_ID`
-6. Deploy. Render free services can spin down after ~15 minutes of inactivity and resume on the next request.
+#### Backend — Render
 
-**Frontend (Netlify – Free)**
-1. Connect your repo on Netlify and choose **New site from Git**.
-2. Build command: *(leave empty)*
-3. Publish directory: `frontend`
-4. Deploy. A `netlify.toml` is included to simplify this.
+1. Connect your GitHub repo → **New Web Service**
+2. Set **Root Directory** to `backend`
+3. **Build command:** `npm install`
+4. **Start command:** `npm start`
+5. Add environment variables:
+   - `MONGO_URI` — your MongoDB connection string
+   - `JWT_SECRET` — a strong random string
+   - `ADMIN_EMAILS` — comma-separated admin emails
+   - `GOOGLE_CLIENT_ID` — from Google Cloud Console
+6. Deploy. Free services may spin down after ~15 min of inactivity.
 
-**Set API URL**
-1. Once Render gives you a URL (example: `https://your-service.onrender.com`), open:
-   - `frontend/config.js`
-2. Set:
-   ```js
-   window.SHHub_API_BASE_URL = 'https://your-service.onrender.com/api';
-    window.SHHub_GOOGLE_CLIENT_ID = 'your-google-client-id.apps.googleusercontent.com';
-   ```
-3. Commit and redeploy the frontend.
+#### Frontend — Netlify
 
-**Database (MongoDB Atlas)**
-Ensure your MongoDB Atlas network access allows your Render service to connect. The quickest option is `0.0.0.0/0` (then use a strong password).
+1. Connect your GitHub repo → **New site from Git**
+2. **Build command:** *(leave empty)*
+3. **Publish directory:** `frontend`
+4. Deploy. A `netlify.toml` is included for optimal defaults.
+
+#### Database — MongoDB Atlas
+
+Ensure your cluster's **Network Access** allows Render to connect. The quickest option: whitelist `0.0.0.0/0` (use a strong database password).
+
+#### Set the API URL
+
+Once Render gives you a URL (e.g. `https://your-service.onrender.com`), update:
+
+```js
+// frontend/config.js
+window.SHHub_API_BASE_URL = 'https://your-service.onrender.com/api';
+window.SHHub_GOOGLE_CLIENT_ID = 'your-google-client-id.apps.googleusercontent.com';
+```
+
+Commit and redeploy the frontend.
+
+### Alternative Hosting
+
+- **Frontend:** Vercel, GitHub Pages, Cloudflare Pages
+- **Backend:** Railway, Cyclic, Fly.io
+- **Database:** MongoDB Atlas (any region)
 
 ---
 
-Alternative options:
-- **Frontend:** Vercel or GitHub Pages
-- **Backend:** Railway or Render
-- **Database:** MongoDB Atlas
+## 🤝 Contributing
+
+Contributions are welcome and appreciated! Here's how to get started:
+
+1. **Fork** the repository
+2. **Create a feature branch:** `git checkout -b feature/amazing-feature`
+3. **Commit your changes:** `git commit -m 'Add amazing feature'`
+4. **Push to the branch:** `git push origin feature/amazing-feature`
+5. **Open a Pull Request**
+
+Please make sure your code follows the existing style and all tests pass.
+
 ---
-**Support**:😀
-If you like this project, consider giving it a star⭐🌟.
+
+## 📄 License
+
+This project is open source and available under the **[MIT License](LICENSE)**.
+
+---
+
+## ⭐ Support
+
+If you find this project useful, please consider:
+
+- ⭐ **Starring** the repository on [GitHub](https://github.com/denismunene2006-lab/student-hustle-hub)
+- 🐛 **Reporting issues** if you encounter bugs
+- 💡 **Suggesting features** via GitHub Issues
+
+Your support keeps this project alive and growing!
+
+---
+
+<p align="center">
+  <strong>Built with ❤️ by <a href="https://github.com/denismunene2006-lab">Denis Munene</a></strong>
+</p>
