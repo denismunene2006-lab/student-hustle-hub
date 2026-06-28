@@ -333,7 +333,7 @@ If you find this project useful, please consider:
 - 🐛 **Reporting issues** if you encounter bugs
 - 💡 **Suggesting features** via GitHub Issues
 
-Your support keeps this project alive and growing!
+Your support keeps this project alive and growing!🔥
 
 ---
 
