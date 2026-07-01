@@ -331,7 +331,7 @@ If you find this project useful, please consider:
 
 - ⭐ **Starring** the repository on [GitHub](https://github.com/denismunene2006-lab/student-hustle-hub)
 - 🐛 **Reporting issues** if you encounter bugs
-- 💡 **Suggesting features** via GitHub Issues
+- 💡 **Suggesting features** via GitHub Issues.
 
 Your support keeps this project alive and growing!🔥🎊
 
