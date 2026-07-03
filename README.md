@@ -305,7 +305,7 @@ Commit and redeploy the frontend.
 
 ---
 
-## 🤝 Contributing
+## 🤝🫡Contributing
 
 Contributions are welcome and appreciated! Here's how to get started:
 
