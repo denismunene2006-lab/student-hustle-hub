@@ -1,4 +1,4 @@
-# 🎓 Student Hustle Hub — Campus Marketplace.
+# 🎓 Student Hustle Hub — Campus Marketplace💡
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-live-brightgreen?style=flat-square" alt="Status">
