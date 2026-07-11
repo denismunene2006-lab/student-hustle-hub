@@ -139,7 +139,7 @@ student-hustle-hub/
 
 ---
 
-## 🚀 Run Locally
+## 🚀 Run Locally🚀
 
 > **Prerequisites:** [Node.js](https://nodejs.org/) 18+ and [MongoDB](https://www.mongodb.com/) (local or Atlas).
 >
