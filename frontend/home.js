@@ -252,10 +252,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // await sleep(50); // Removed artificial delay for faster local loading
         updateUrlWithFilters();
 
-        let services = [];
+        // Load local services immediately for instant display
+        let services = window.SHHub?.getAllServices?.() ?? [];
+        
+        // If API is configured, try to fetch fresh data in the background
         if (window.SHHub?.isApiMode?.() && window.SHHub?.apiGetServices) {
             try {
-                services = await window.SHHub.apiGetServices({
+                const apiServices = await window.SHHub.apiGetServices({
                     keyword,
                     category,
                     listingType: activeListingFilter === 'all' ? '' : activeListingFilter,
@@ -263,23 +266,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (requestId !== latestRequestId) return;
                 
-                // Update cache if this was a general browse (no filters)
-                if (!keyword && !category && activeListingFilter === 'all') {
-                    localStorage.setItem(BROWSE_CACHE_KEY, JSON.stringify(services));
+                if (Array.isArray(apiServices) && apiServices.length > 0) {
+                    services = apiServices;
+                    // Update cache if this was a general browse (no filters)
+                    if (!keyword && !category && activeListingFilter === 'all') {
+                        localStorage.setItem(BROWSE_CACHE_KEY, JSON.stringify(services));
+                    }
                 }
             } catch (error) {
                 if (requestId !== latestRequestId) return;
-                console.error("Failed to fetch services from API:", error);
-                
-                const isTimeout = error.message?.toLowerCase().includes('timeout');
-                const msg = isTimeout ? 'Server is waking up, please wait a moment...' : 'Could not connect to the server.';
-                window.SHHub?.showToast?.(msg, isTimeout ? 'neutral' : 'error');
-                // Fall back to local services when API fails
-                services = window.SHHub?.getAllServices?.() ?? [];
+                // Silently fall back to local services already loaded above
+                console.log("API unavailable, using local services");
             }
-        } else {
-            // Use local services when API is not configured
-            services = window.SHHub?.getAllServices?.() ?? [];
         }
 
         services = Array.isArray(services) ? services : [];

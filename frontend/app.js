@@ -9,7 +9,7 @@
   const FAVORITES_KEY = 'shhub_favorites';
   const API_BASE_KEY = 'shhub_api_base_url';
   const GOOGLE_CLIENT_KEY = 'shhub_google_client_id';
-  const API_REQUEST_TIMEOUT_MS = 30000;
+  const API_REQUEST_TIMEOUT_MS = 8000;
   const PUBLIC_API_CACHE_PREFIX = 'shhub_public_api_cache:';
   const PUBLIC_API_CACHE_TTL_MS = 45 * 1000;
   const ADMIN_EMAILS = [];
