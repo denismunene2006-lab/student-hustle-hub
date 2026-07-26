@@ -1,0 +1,31 @@
+{
+  "name": "Student Hustle Hub",
+  "short_name": "SHHub",
+  "description": "Campus Marketplace for Student Services in Kenya — find tutoring, design, programming, and more.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#0F766E",
+  "background_color": "#0F766E",
+  "categories": ["education", "marketplace", "lifestyle"],
+  "lang": "en-KE",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false,
+  "related_applications": []
+}
