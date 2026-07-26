@@ -93,8 +93,6 @@
 
 <link rel="stylesheet" href="app.css">
 
-<!-- Prevent flash of unstyled content: hide body until Tailwind + config are ready -->
-<style>body { visibility: hidden; }</style>
 <script src="https://cdn.tailwindcss.com"></script>
 <script defer src="https://unpkg.com/lucide@latest"></script>
 
@@ -113,12 +111,6 @@ secondary: '#F59E0B',
 }
 }
 }
-// Wait a microtask for Tailwind to process the config, then show the body
-requestAnimationFrame(function() {
-  requestAnimationFrame(function() {
-    document.body.style.visibility = 'visible';
-  });
-});
 </script>
 
 <!-- Service Worker Registration -->
