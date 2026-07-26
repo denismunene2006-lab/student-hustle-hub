@@ -269,17 +269,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 if (requestId !== latestRequestId) return;
-                // Log the actual error to the console for debugging
                 console.error("Failed to fetch services from API:", error);
                 
                 const isTimeout = error.message?.toLowerCase().includes('timeout');
                 const msg = isTimeout ? 'Server is waking up, please wait a moment...' : 'Could not connect to the server.';
                 window.SHHub?.showToast?.(msg, isTimeout ? 'neutral' : 'error');
-                return; // Stop execution to keep cached data visible if available
+                // Fall back to local services when API fails
+                services = window.SHHub?.getAllServices?.() ?? [];
             }
         } else {
-            services = []; // If not in API mode, show no services
-            window.SHHub?.showToast?.('API not configured. Go to settings.', 'error');
+            // Use local services when API is not configured
+            services = window.SHHub?.getAllServices?.() ?? [];
         }
 
         services = Array.isArray(services) ? services : [];
