@@ -93,15 +93,7 @@
 
 <link rel="stylesheet" href="app.css">
 
-<!-- Load Tailwind asynchronously to avoid blocking render -->
-<script>
-(function() {
-  var s = document.createElement('script');
-  s.src = 'https://cdn.tailwindcss.com';
-  s.async = true;
-  document.head.appendChild(s);
-})();
-</script>
+<script src="https://cdn.tailwindcss.com"></script>
 <script defer src="https://unpkg.com/lucide@latest"></script>
 
 <script defer src="config.js"></script>
@@ -138,8 +130,8 @@ if ('serviceWorker' in navigator) {
 
 <body class="min-h-screen antialiased text-slate-900 dark:text-slate-100">
 
-<!-- Lightweight loading indicator shown until app.js renders the navbar -->
-<div id="app-loading" style="position:fixed;top:0;left:0;right:0;z-index:9999;display:flex;align-items:center;justify-content:center;height:100vh;background:#0F766E;transition:opacity 0.3s ease">
+<!-- Lightweight loading indicator - only shown on PWA standalone launch, not on navigations -->
+<div id="app-loading" style="position:fixed;top:0;left:0;right:0;z-index:9999;display:none;align-items:center;justify-content:center;height:100vh;background:#0F766E;transition:opacity 0.3s ease">
   <div style="text-align:center;color:white">
     <svg width="48" height="48" viewBox="0 0 512 512" fill="none" style="margin:0 auto 16px">
       <rect width="512" height="512" rx="96" fill="white" opacity="0.2"/>
@@ -161,17 +153,24 @@ if ('serviceWorker' in navigator) {
 }
 </style>
 <script>
-// Hide loading screen once app.js has initialized
-document.addEventListener('DOMContentLoaded', function() {
+// Only show loading screen on PWA standalone launch (not on regular navigations)
+(function() {
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   var loadingEl = document.getElementById('app-loading');
   if (loadingEl) {
-    // Give app.js a moment to render, then fade out
-    setTimeout(function() {
-      loadingEl.style.opacity = '0';
-      setTimeout(function() { loadingEl.remove(); }, 300);
-    }, 100);
+    if (isStandalone) {
+      loadingEl.style.display = 'flex';
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          loadingEl.style.opacity = '0';
+          setTimeout(function() { loadingEl.remove(); }, 300);
+        }, 100);
+      });
+    } else {
+      loadingEl.remove();
+    }
   }
-});
+})();
 </script>
 
 <div class="app-bg"></div>
