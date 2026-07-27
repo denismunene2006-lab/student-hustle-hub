@@ -224,6 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         resultCount.innerText = `${sortedCache.length} result${sortedCache.length === 1 ? '' : 's'}`;
                     }
                     window.SHHub?.refreshIcons?.();
+                    // Retry icon refresh after a brief delay
+                    setTimeout(() => window.SHHub?.refreshIcons?.(), 100);
                 }
             } catch (e) { console.error("Cache parse failed", e); }
         }
@@ -342,6 +344,8 @@ document.addEventListener('DOMContentLoaded', () => {
         servicesGrid.innerHTML = services.map(renderServiceCard).join('');
         
         window.SHHub?.refreshIcons?.();
+        // Retry icon refresh after a brief delay to ensure icons render properly
+        setTimeout(() => window.SHHub?.refreshIcons?.(), 100);
     }
 
     const updateListingFilterUI = (filterValue) => {
