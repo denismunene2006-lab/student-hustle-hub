@@ -93,12 +93,6 @@
 
 <link rel="stylesheet" href="app.css">
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script defer src="https://unpkg.com/lucide@latest"></script>
-
-<script defer src="config.js"></script>
-<script defer src="app.js"></script>
-
 <script>
 tailwind.config = {
 darkMode: 'class',
@@ -111,6 +105,30 @@ secondary: '#F59E0B',
 }
 }
 }
+</script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<script defer src="config.js"></script>
+<script defer src="app.js"></script>
+
+<script>
+// Ensure Lucide icons render properly once it loads
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    // Try to render icons immediately
+    if (window.lucide?.createIcons) {
+      window.lucide.createIcons();
+    }
+    // Retry after a delay in case Lucide is still loading
+    setTimeout(() => {
+      if (window.lucide?.createIcons) {
+        window.lucide.createIcons();
+      }
+    }, 200);
+  });
+})();
 </script>
 
 <!-- Service Worker Registration -->

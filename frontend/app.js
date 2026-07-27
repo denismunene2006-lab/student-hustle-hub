@@ -1104,7 +1104,16 @@
   };
 
   const refreshIcons = () => {
-    if (window.lucide?.createIcons) window.lucide.createIcons();
+    if (window.lucide?.createIcons) {
+      window.lucide.createIcons();
+    } else {
+      // Retry if Lucide isn't loaded yet (can happen on initial load with slow CDN)
+      setTimeout(() => {
+        if (window.lucide?.createIcons) {
+          window.lucide.createIcons();
+        }
+      }, 100);
+    }
   };
 
   const getThemePreference = () => {
@@ -1310,7 +1319,12 @@
       refreshIcons();
     });
 
+    // Refresh icons immediately and again after Lucide is confirmed to be loaded
     refreshIcons();
+    // Double-check after a brief delay to handle slow CDN loads
+    setTimeout(() => {
+      refreshIcons();
+    }, 50);
   };
 
   const renderFooter = () => {
@@ -1374,7 +1388,11 @@
     if (activeUser) setUser(activeUser);
     renderNavbar();
     renderFooter();
+    // Refresh icons with retry mechanism for better reliability
     refreshIcons();
+    setTimeout(() => {
+      refreshIcons();
+    }, 150);
   };
 
   window.SHHub = {
