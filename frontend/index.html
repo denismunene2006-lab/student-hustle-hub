@@ -97,17 +97,27 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <script>
-tailwind.config = {
-  darkMode: 'class',
-  theme: {
-    extend: {
-      colors: {
-        primary: 'rgb(15 118 110 / <alpha-value>)',
-        secondary: 'rgb(245 158 11 / <alpha-value>)',
+// Ensure Tailwind config is set safely after Tailwind loads
+(function initTailwind() {
+  // Check if tailwind is loaded
+  if (typeof tailwind !== 'undefined' && tailwind.config !== undefined) {
+    // Tailwind is ready, set config immediately
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: 'rgb(15 118 110 / <alpha-value>)',
+            secondary: 'rgb(245 158 11 / <alpha-value>)',
+          }
+        }
       }
-    }
+    };
+  } else {
+    // Tailwind not ready yet, retry after 100ms
+    setTimeout(initTailwind, 100);
   }
-}
+})();
 </script>
 
 <script defer src="config.js"></script>
