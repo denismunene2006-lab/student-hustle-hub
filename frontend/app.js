@@ -1457,12 +1457,40 @@
     }
   };
 
+  const renderBackToTop = () => {
+    const existing = document.getElementById('shhub-back-to-top');
+    if (existing) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'shhub-back-to-top';
+    btn.className = 'back-to-top inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-lg hover:brightness-95 focus:outline-none focus:ring-4 focus:ring-primary/40';
+    btn.setAttribute('aria-label', 'Back to top');
+    btn.innerHTML = '<i data-lucide="arrow-up" class="h-5 w-5"></i>';
+    btn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.body.appendChild(btn);
+    refreshIcons();
+
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          btn.classList.toggle('visible', window.scrollY > 400);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+  };
+
   const init = () => {
     if (document.body?.dataset?.requiresAuth === 'true') requireAuth();
     const activeUser = getUser();
     if (activeUser) setUser(activeUser);
     renderNavbar();
     renderFooter();
+    renderBackToTop();
     // Refresh icons with retry mechanism for better reliability
     refreshIcons();
     setTimeout(() => {

@@ -82,6 +82,15 @@
                 <div>
                     <label for="password" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Password</label>
                     <input type="password" id="password" autocomplete="new-password" required class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="••••••••">
+                    <div id="password-strength" class="mt-2 hidden">
+                        <div class="flex gap-1">
+                            <div id="ps-bar-1" class="h-1 flex-1 rounded-full bg-slate-200 dark:bg-slate-700 transition-colors"></div>
+                            <div id="ps-bar-2" class="h-1 flex-1 rounded-full bg-slate-200 dark:bg-slate-700 transition-colors"></div>
+                            <div id="ps-bar-3" class="h-1 flex-1 rounded-full bg-slate-200 dark:bg-slate-700 transition-colors"></div>
+                            <div id="ps-bar-4" class="h-1 flex-1 rounded-full bg-slate-200 dark:bg-slate-700 transition-colors"></div>
+                        </div>
+                        <p id="ps-label" class="mt-1 text-xs text-slate-500 dark:text-slate-400"></p>
+                    </div>
                 </div>
                 <div>
                     <label for="university" class="block text-sm font-medium text-slate-700 dark:text-slate-200">University</label>
@@ -156,6 +165,46 @@
             if (modeNoteEl && isApiMode) {
                 modeNoteEl.innerText = 'Connected mode: account data syncs securely to server.';
             }
+
+            // Password strength indicator
+            const passwordInput = document.getElementById('password');
+            const psContainer = document.getElementById('password-strength');
+            const psBars = [1, 2, 3, 4].map((i) => document.getElementById('ps-bar-' + i));
+            const psLabel = document.getElementById('ps-label');
+
+            const getPasswordStrength = (pw) => {
+                let score = 0;
+                if (pw.length >= 8) score += 1;
+                if (pw.length >= 12) score += 1;
+                if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score += 1;
+                if (/\d/.test(pw) && /[^a-zA-Z0-9]/.test(pw)) score += 1;
+                return Math.min(score, 4);
+            };
+
+            const strengthConfig = [
+                { label: 'Too short', color: 'bg-rose-500', threshold: 0 },
+                { label: 'Weak', color: 'bg-orange-500', threshold: 1 },
+                { label: 'Fair', color: 'bg-amber-500', threshold: 2 },
+                { label: 'Good', color: 'bg-lime-500', threshold: 3 },
+                { label: 'Strong', color: 'bg-emerald-500', threshold: 4 },
+            ];
+
+            passwordInput?.addEventListener('input', () => {
+                const pw = passwordInput.value;
+                if (!pw) {
+                    psContainer.classList.add('hidden');
+                    return;
+                }
+                psContainer.classList.remove('hidden');
+                const score = getPasswordStrength(pw);
+                const config = strengthConfig[score];
+                psBars.forEach((bar, i) => {
+                    if (bar) {
+                        bar.className = `h-1 flex-1 rounded-full transition-colors ${i < score ? config.color : 'bg-slate-200 dark:bg-slate-700'}`;
+                    }
+                });
+                if (psLabel) psLabel.textContent = config.label;
+            });
 
             const showError = (message) => {
                 errorEl.innerText = message;
@@ -259,6 +308,11 @@
                 if (!university) return showError('Please enter your university.');
                 if (!course) return showError('Please enter your course.');
 
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span> Creating account...';
+
                 try {
                     if (isApiMode && window.SHHub?.apiRegister) {
                         await window.SHHub.apiRegister({
@@ -274,6 +328,8 @@
 
                     window.location.href = 'dashboard.html';
                 } catch (error) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
                     showError(error?.message || 'Registration failed.');
                 }
             });

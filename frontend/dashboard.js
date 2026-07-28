@@ -184,6 +184,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     modal.classList.remove('flex');
   };
 
+  // Close modals on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (!profileModal?.classList.contains('hidden')) closeModal(profileModal);
+      if (!serviceModal?.classList.contains('hidden')) closeModal(serviceModal);
+    }
+  });
+
   const openProfileModal = () => {
     getElement('profile-name').value = currentUser?.name ?? '';
     getElement('profile-email').value = currentUser?.email ?? '';
@@ -475,6 +483,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const newPassword = profileNewPassword?.value ?? '';
     const confirmPassword = profileConfirmPassword?.value ?? '';
     const wantsPasswordChange = Boolean(currentPassword || newPassword || confirmPassword);
+    const submitBtn = profileForm.querySelector('button[type="submit"]');
 
     if (wantsPasswordChange) {
       if (!currentPassword || !newPassword) {
@@ -495,9 +504,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
+    // Show loading state
+    const originalBtnHtml = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span> Saving...';
+
     try {
       const whatsappNumber = normalizeKenyanPhone(getElement('profile-whatsapp').value);
       if (getElement('profile-whatsapp').value.trim() && !whatsappNumber) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
         window.SHHub?.showToast?.('Enter a Kenyan WhatsApp number like +254712345678.', 'error');
         return;
       }
@@ -529,15 +545,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
       window.SHHub?.logDevError?.('Profile update', error);
       window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to update profile.'), 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnHtml;
     }
   });
 
   serviceForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const serviceId = getElement('service-id').value;
+    const submitBtn = serviceForm.querySelector('button[type="submit"]');
+    const originalBtnHtml = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span> Saving...';
+
     try {
       const contactInfo = normalizeKenyanPhone(getElement('service-contact').value);
       if (!contactInfo) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
         window.SHHub?.showToast?.('Enter a Kenyan WhatsApp number like +254712345678.', 'error');
         return;
       }
@@ -556,6 +582,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
       window.SHHub?.logDevError?.('Service save', error);
       window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to update service.'), 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnHtml;
     }
   });
 

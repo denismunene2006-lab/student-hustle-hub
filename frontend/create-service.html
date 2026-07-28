@@ -117,7 +117,7 @@
 
                 <div>
                     <label for="description" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Description</label>
-                    <textarea id="description" required rows="5" class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="What do you offer? What's included? Any requirements?"></textarea>
+                    <textarea id="description" required rows="5" class="auto-grow mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-3 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="What do you offer? What's included? Any requirements?"></textarea>
                 </div>
 
                 <div id="form-error" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"></div>
@@ -202,6 +202,17 @@
             }
             applyListingMode(user.marketMode ?? 'seller');
 
+            // Auto-growing textarea
+            const descriptionTa = document.getElementById('description');
+            if (descriptionTa) {
+                const autoGrow = () => {
+                    descriptionTa.style.height = 'auto';
+                    descriptionTa.style.height = Math.max(descriptionTa.scrollHeight, 80) + 'px';
+                };
+                descriptionTa.addEventListener('input', autoGrow);
+                setTimeout(autoGrow, 0);
+            }
+
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 errorEl.classList.add('hidden');
@@ -221,6 +232,11 @@
                     contactInfo: normalizedContact,
                 };
 
+                // Show loading state
+                const originalBtnHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span> Posting...';
+
                 try {
                     if (isApiMode && window.SHHub?.apiCreateService) {
                         await window.SHHub.apiCreateService(payload);
@@ -230,6 +246,8 @@
                     }
                     window.location.href = 'dashboard.html';
                 } catch (err) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
                     showError(err?.message || 'Failed to post service.');
                 }
             });

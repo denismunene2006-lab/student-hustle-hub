@@ -232,8 +232,14 @@
 
                 const email = document.getElementById('email').value.trim();
                 const password = document.getElementById('password').value;
+                const submitBtn = form.querySelector('button[type="submit"]');
 
                 if (!email || !password) return showError('Please enter your email and password.');
+
+                // Show loading state on button
+                const originalHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span> Signing in...';
 
                 try {
                     if (isApiMode && window.SHHub?.apiLogin) {
@@ -243,6 +249,8 @@
                     }
                     window.location.href = 'dashboard.html';
                 } catch (error) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
                     const rawMessage = String(error?.message || 'Login failed.');
                     const isInvalid = /invalid email or password/i.test(rawMessage);
                     const finalMessage = isInvalid ? 'Invalid email or password' : rawMessage;

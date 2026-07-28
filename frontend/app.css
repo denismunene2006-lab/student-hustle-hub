@@ -281,6 +281,31 @@ html.dark .floating-footer-card {
   }
 }
 
+/* Back-to-top button */
+.back-to-top {
+  position: fixed;
+  bottom: 6rem;
+  right: 1.5rem;
+  z-index: 50;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Auto-growing textarea */
+textarea.auto-grow {
+  resize: none;
+  overflow: hidden;
+  min-height: 80px;
+}
+
 @media (max-width: 767px) {
   body {
     padding-top: calc(4.75rem + env(safe-area-inset-top, 0px));

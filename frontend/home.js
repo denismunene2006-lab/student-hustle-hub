@@ -378,6 +378,32 @@ document.addEventListener('DOMContentLoaded', () => {
         applyFiltersFromUrl();
         fetchServices();
 
+        // Add clear button inside search input
+        if (searchInput) {
+            const searchWrapper = searchInput.parentElement;
+            searchWrapper.style.position = 'relative';
+
+            const clearBtn = document.createElement('button');
+            clearBtn.type = 'button';
+            clearBtn.className = 'absolute right-3 top-1/2 -translate-y-1/2 hidden items-center justify-center h-6 w-6 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 dark:hover:text-slate-200 transition';
+            clearBtn.setAttribute('aria-label', 'Clear search');
+            clearBtn.innerHTML = '<i data-lucide="x" class="h-3.5 w-3.5"></i>';
+            clearBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                clearBtn.classList.add('hidden');
+                fetchServices();
+                searchInput.focus();
+            });
+            searchWrapper.appendChild(clearBtn);
+
+            searchInput.addEventListener('input', () => {
+                clearBtn.classList.toggle('hidden', !searchInput.value.trim());
+            });
+            // Initial state
+            clearBtn.classList.toggle('hidden', !searchInput.value.trim());
+            window.SHHub?.refreshIcons?.();
+        }
+
         searchInput?.addEventListener('input', debounce(fetchServices, 300));
         categorySelect?.addEventListener('change', fetchServices);
         sortSelect?.addEventListener('change', fetchServices);
