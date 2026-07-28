@@ -1,4 +1,4 @@
-# 🎓 Student Hustle Hub — Campus Marketplace💡.
+# 🎓 Student Hustle Hub — Campus Marketplace
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-live-brightgreen?style=flat-square" alt="Status">
@@ -31,6 +31,7 @@
   - [Google Sign-In Setup](#google-sign-in-setup)
   - [Seed Demo Data](#seed-demo-data)
   - [Admin Access](#admin-access)
+- [🛡️ Error Handling](#️-error-handling)
 - [📈 Performance Optimizations](#-performance-optimizations)
 - [🔍 SEO & Search Console](#-seo--search-console)
 - [🌐 Deployment](#-deployment)
@@ -75,6 +76,13 @@
 - **Dark mode** — early theme hydration in `<head>` prevents flash during navigation
 - **Smooth navigation** — single-page-app feel with traditional HTML pages
 
+### 🛡️ Error Handling
+- **User-friendly error messages** — technical errors like "Failed to fetch" and "NetworkError" are translated into clear, actionable messages
+- **Graceful degradation** — network failures fall back to cached or local data without crashing
+- **Loading state safety** — all async operations have guaranteed loading state cleanup, preventing infinite spinners
+- **Structured logging** — errors are logged with context prefixes for easy developer debugging
+- **Toast notifications** — consistent success/error/info toasts replace disruptive `alert()` dialogs
+
 ---
 
 ## 🛠️ Tech Stack
@@ -111,7 +119,7 @@ student-hustle-hub/
 │   ├── js/                    # Client-side JavaScript modules
 │   │   └── seo.js             # Dynamic SEO metadata injection
 │   ├── app.css                # Global stylesheet
-│   ├── app.js                 # Shared client logic
+│   ├── app.js                 # Shared client logic (error handling, auth, API, UI)
 │   ├── config.js              # Frontend configuration (API URL, Google Client ID)
 │   ├── dashboard.js           # Dashboard page logic
 │   ├── home.js                # Homepage logic
@@ -124,7 +132,7 @@ student-hustle-hub/
 │   ├── service.html           # Service detail page
 │   ├── create-service.html    # Create / edit service
 │   ├── admin.html             # Admin moderation panel
-│   ├── settings.html          # User settings
+│   ├── settings.html          # API connection settings
 │   ├── guidelines.html        # Community guidelines
 │   ├── terms.html             # Terms of service
 │   ├── robots.txt             # Crawler instructions
@@ -139,7 +147,7 @@ student-hustle-hub/
 
 ---
 
-## 🚀 Run Locally🚀
+## 🚀 Run Locally
 
 > **Prerequisites:** [Node.js](https://nodejs.org/) 18+ and [MongoDB](https://www.mongodb.com/) (local or Atlas).
 >
@@ -175,7 +183,7 @@ npx serve .
 
 The site opens — usually at **`http://127.0.0.1:5500`**.
 
-By default, the app connects to `http://localhost:5000`. You can change the API URL on the **settings page** once logged in.
+By default, the app connects to `http://localhost:5000`. You can change the API URL on the **settings page** once logged in as admin.
 
 ### Google Sign-In Setup
 
@@ -217,6 +225,37 @@ Log out, then log back in to see the admin panel.
 
 ---
 
+## 🛡️ Error Handling
+
+The application includes a comprehensive error handling system designed for reliability and user experience:
+
+### Centralized Error Utilities (`frontend/app.js`)
+
+| Utility | Purpose |
+|---------|---------|
+| `getUserFriendlyErrorMessage(error)` | Translates 22+ technical error patterns into clear, user-friendly messages |
+| `logDevError(context, error)` | Logs structured errors with context for developer debugging |
+| `isNetworkError(error)` | Detects network-related failures (timeout, fetch failure, CORS, etc.) |
+| `withLoading(button, asyncFn)` | Wraps async operations with guaranteed loading state cleanup |
+
+### Error Message Mapping
+
+Technical errors are automatically translated:
+- `"Failed to fetch"` → `"Unable to reach the server. Please check your internet connection and try again."`
+- `"Request timeout"` → `"The server is taking too long to respond. Please try again."`
+- `"Not authenticated"` → `"Please log in to continue."`
+- `"Invalid email or password"` → `"The email or password you entered is incorrect."`
+- `"Server error"` → `"A server error occurred. Our team has been notified."`
+
+### Graceful Degradation
+
+- **Browse page:** If the API is unreachable, cached/local services are shown instead of a blank page
+- **Service details:** Falls back to local data if the API request fails
+- **Dashboard:** Network errors silently fall back to cached data; non-network errors show a friendly toast
+- **Profile page:** Uses `Promise.allSettled` so one failed API call doesn't break the entire page
+
+---
+
 ## 📈 Performance Optimizations
 
 The app includes lightweight performance tweaks with zero UI impact:
@@ -226,6 +265,7 @@ The app includes lightweight performance tweaks with zero UI impact:
 - **🗄️ MongoDB indexes** — Models declare indexes for common query patterns (services, reviews, jobs, reports, admin)
 - **⚡ Lean queries** — Read-heavy list/detail endpoints use `.lean()` to reduce server overhead
 - **🔄 Cache invalidation** — After create, update, delete, review, or moderation actions, the frontend clears stale cached data
+- **⏳ Skeleton loading** — Browse page shows animated skeleton cards while data loads, preventing layout shifts
 
 > **Note:** For production databases with large existing datasets, verify indexes exist in MongoDB Atlas. If auto-index creation is disabled, create equivalent indexes manually.
 
@@ -305,7 +345,7 @@ Commit and redeploy the frontend.
 
 ---
 
-## 🤝🫡Contributing
+## 🤝 Contributing
 
 Contributions are welcome and appreciated! Here's how to get started:
 
@@ -333,7 +373,7 @@ If you find this project useful, please consider:
 - 🐛 **Reporting issues** if you encounter bugs
 - 💡 **Suggesting features** via GitHub Issues.
 
-Your support keeps this project alive and growing!🔥🎊
+Your support keeps this project alive and growing! 🎊
 
 ---
 
