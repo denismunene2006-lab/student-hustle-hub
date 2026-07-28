@@ -15,6 +15,81 @@
   const ADMIN_EMAILS = [];
   const apiPendingRequests = new Map();
 
+  // ========== Centralized Error Handling Utilities ==========
+  // Map of technical error message substrings to user-friendly messages.
+  const ERROR_MESSAGE_MAP = [
+    { match: /failed to fetch/i, friendly: 'Unable to reach the server. Please check your internet connection and try again.' },
+    { match: /networkerror/i, friendly: 'A network error occurred. Please check your connection and try again.' },
+    { match: /network request failed/i, friendly: 'Unable to connect to the server. Please try again later.' },
+    { match: /request timeout/i, friendly: 'The server is taking too long to respond. Please try again.' },
+    { match: /aborterror/i, friendly: 'The request was interrupted. Please try again.' },
+    { match: /not allowed by cors/i, friendly: 'A configuration error occurred. Please contact support.' },
+    { match: /api base url is not configured/i, friendly: 'The connection to the server has not been set up. Please go to Settings to configure it.' },
+    { match: /not authenticated/i, friendly: 'Please log in to continue.' },
+    { match: /admin access required/i, friendly: 'You need admin access to perform this action.' },
+    { match: /not authorized/i, friendly: 'You do not have permission to do that.' },
+    { match: /cannot (login|register|create|update|delete)/i, friendly: 'Something went wrong. Please try again.' },
+    { match: /validation failed/i, friendly: 'Please check your information and try again.' },
+    { match: /invalid email or password/i, friendly: 'The email or password you entered is incorrect.' },
+    { match: /user already exists/i, friendly: 'An account with this email already exists.' },
+    { match: /user not found/i, friendly: 'We could not find that user.' },
+    { match: /service not found/i, friendly: 'We could not find that service. It may have been removed.' },
+    { match: /review not found/i, friendly: 'We could not find that review.' },
+    { match: /job not found/i, friendly: 'We could not find that job.' },
+    { match: /please fill all fields correctly/i, friendly: 'Please fill in all required fields correctly.' },
+    { match: /cannot (be|review)/i, friendly: 'Something went wrong. Please try again.' },
+    { match: /server error/i, friendly: 'A server error occurred. Our team has been notified.' },
+    { match: /internal server error/i, friendly: 'A server error occurred. Our team has been notified.' },
+    { match: /too many requests/i, friendly: 'You have made too many requests. Please wait before trying again.' },
+    { match: /rate limit/i, friendly: 'You are doing this too often. Please slow down and try again.' },
+    { match: /not found$/i, friendly: 'The requested resource was not found.' },
+  ];
+
+  const logDevError = (context, error, extra = {}) => {
+    if (typeof console !== 'undefined') {
+      console.error(`[Student Hustle Hub Error] ${context}:`, error?.message ?? error, extra);
+    }
+  };
+
+  const getUserFriendlyErrorMessage = (error, fallback = 'Something unexpected happened. Please try again.') => {
+    const message = String(error?.message ?? error ?? '').trim();
+    if (!message) return fallback;
+    for (const { match, friendly } of ERROR_MESSAGE_MAP) {
+      if (match.test(message)) return friendly;
+    }
+    // If the message already looks user-friendly (no stack traces, no HTTP-like codes), return it.
+    if (/^[A-Z]/.test(message) && message.length < 200 && !message.includes('\n')) {
+      return message;
+    }
+    return fallback;
+  };
+
+  const isNetworkError = (error) => {
+    const message = String(error?.message ?? '').toLowerCase();
+    return message.includes('failed to fetch')
+      || message.includes('networkerror')
+      || message.includes('network request failed')
+      || message.includes('request timeout')
+      || message.includes('aborterror')
+      || message.includes('request failed');
+  };
+
+  const withLoading = (buttonElement, asyncFn) => {
+    return async (...args) => {
+      if (!buttonElement) return asyncFn(...args);
+      const originalHtml = buttonElement.innerHTML;
+      const originalDisabled = buttonElement.disabled;
+      try {
+        buttonElement.disabled = true;
+        buttonElement.innerHTML = '<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>';
+        return await asyncFn(...args);
+      } finally {
+        buttonElement.disabled = originalDisabled;
+        buttonElement.innerHTML = originalHtml;
+      }
+    };
+  };
+
   const storageGet = (key) => {
     try {
       return localStorage.getItem(key);
@@ -1400,6 +1475,10 @@
     setUser,
     logout,
     requireAuth,
+    logDevError,
+    getUserFriendlyErrorMessage,
+    isNetworkError,
+    withLoading,
     applyTheme,
     toggleTheme,
     refreshIcons,

@@ -1,14 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const isApiMode = window.SHHub?.isApiMode?.() === true;
   let currentUser = window.SHHub?.getUser?.();
-  const isNetworkError = (error) => {
-    const message = String(error?.message ?? '').toLowerCase();
-    return message.includes('failed to fetch')
-      || message.includes('networkerror')
-      || message.includes('network request failed')
-      || message.includes('request timeout')
-      || message.includes('aborterror');
-  };
 
   const readFileAsDataUrl = (file) =>
     new Promise((resolve, reject) => {
@@ -79,8 +71,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       currentUser = await window.SHHub.apiGetProfile();
     } catch (error) {
-      if (!isNetworkError(error) || !currentUser) {
-        window.SHHub?.showToast?.(error?.message || 'Please login again.', 'error');
+      window.SHHub?.logDevError?.('apiGetProfile', error);
+      if (!window.SHHub?.isNetworkError?.(error) || !currentUser) {
+        window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Please login again.'), 'error');
         window.SHHub?.logout?.('login.html');
         return;
       }
@@ -246,7 +239,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           summary = { average: total / count, count };
         }
       } catch (error) {
-        console.error('Failed to load reviews from API:', error);
+        window.SHHub?.logDevError?.('Failed to load reviews from API', error);
         summary = window.SHHub?.getRatingSummaryForUser?.(currentUser?._id) ?? { average: 0, count: 0 };
       }
     } else {
@@ -261,8 +254,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         myJobsCache = Array.isArray(jobs) ? jobs : [];
       } catch (error) {
         myJobsCache = [];
-        if (!isNetworkError(error)) {
-          window.SHHub?.showToast?.(error?.message || 'Failed to load job history.', 'error');
+        window.SHHub?.logDevError?.('Failed to load job history', error);
+        if (!window.SHHub?.isNetworkError?.(error)) {
+          window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to load job history.'), 'error');
         }
       }
     } else {
@@ -370,7 +364,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       myServicesCache = Array.isArray(loadedServices) ? loadedServices : [];
     } catch (error) {
       myServicesCache = [];
-      window.SHHub?.showToast?.(error?.message || 'Failed to load your services.', 'error');
+      window.SHHub?.logDevError?.('Failed to load services', error);
+      window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to load your services.'), 'error');
     }
 
     getElement('stat-services').innerText = String(myServicesCache.length);
@@ -442,7 +437,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       await renderStatsAndHistory();
       window.SHHub?.showToast?.('Switched to Seller mode', 'success');
     } catch (error) {
-      window.SHHub?.showToast?.(error?.message || 'Failed to switch mode.', 'error');
+      window.SHHub?.logDevError?.('Switch to seller mode', error);
+      window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to switch mode.'), 'error');
     }
   });
   modeBuyerBtn?.addEventListener('click', async () => {
@@ -452,7 +448,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       await renderStatsAndHistory();
       window.SHHub?.showToast?.('Switched to Buyer mode', 'success');
     } catch (error) {
-      window.SHHub?.showToast?.(error?.message || 'Failed to switch mode.', 'error');
+      window.SHHub?.logDevError?.('Switch to buyer mode', error);
+      window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to switch mode.'), 'error');
     }
   });
 
@@ -530,7 +527,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       closeModal(profileModal);
     } catch (error) {
-      window.SHHub?.showToast?.(error?.message || 'Failed to update profile.', 'error');
+      window.SHHub?.logDevError?.('Profile update', error);
+      window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to update profile.'), 'error');
     }
   });
 
@@ -556,7 +554,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       await renderMyServices();
       window.SHHub?.showToast?.('Service saved successfully', 'success');
     } catch (error) {
-      window.SHHub?.showToast?.(error?.message || 'Failed to update service.', 'error');
+      window.SHHub?.logDevError?.('Service save', error);
+      window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to update service.'), 'error');
     }
   });
 
@@ -571,7 +570,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         applyUserUI(currentUser);
         window.SHHub?.showToast?.('Profile photo updated', 'success');
       } catch (error) {
-        window.SHHub?.showToast?.(error?.message || 'Failed to update profile image.', 'error');
+        window.SHHub?.logDevError?.('Profile photo update', error);
+        window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to update profile image.'), 'error');
       } finally {
         upload.value = '';
       }
@@ -589,7 +589,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         await renderMyServices();
         window.SHHub?.showToast?.('Service deleted', 'success');
       } catch (error) {
-        window.SHHub?.showToast?.(error?.message || 'Failed to delete service.', 'error');
+        window.SHHub?.logDevError?.('Service delete', error);
+        window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to delete service.'), 'error');
       }
       return;
     }
@@ -615,7 +616,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       await renderStatsAndHistory();
       window.SHHub?.showToast?.('Job status updated', 'success');
     } catch (error) {
-      window.SHHub?.showToast?.(error?.message || 'Failed to update job status.', 'error');
+      window.SHHub?.logDevError?.('Job status update', error);
+      window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to update job status.'), 'error');
     }
   });
 
@@ -624,4 +626,3 @@ document.addEventListener('DOMContentLoaded', async () => {
   await renderMyServices();
   window.SHHub?.refreshIcons?.();
 });
-

@@ -99,7 +99,7 @@ app.use('/api/admin', adminRoutes);
 
 // ---------------- Error Handling ----------------
 app.use((req, res) => {
-  res.status(404).json({ message: 'Not found' });
+  res.status(404).json({ message: 'The requested resource was not found.' });
 });
 
 app.use((err, req, res, next) => {
@@ -107,10 +107,16 @@ app.use((err, req, res, next) => {
     return next(err);
   }
   const statusCode = res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;
+  const message = statusCode === 500
+    ? 'A server error occurred. Our team has been notified.'
+    : (err.message || 'Something went wrong. Please try again.');
+  // Log detailed error for developers
+  console.error(`[Server Error] ${statusCode}:`, err.message || err);
+  if (statusCode === 500 && process.env.NODE_ENV !== 'production') {
+    console.error(err.stack);
+  }
   res.status(statusCode);
-  res.json({
-    message: err.message || 'Server error',
-  });
+  res.json({ message });
 });
 
 // ---------------- Start Server ----------------

@@ -18,11 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Security: Escape HTML to prevent XSS attacks
     const escapeHtml = (unsafe) => {
         return String(unsafe ?? '')
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+            .replace(/&/g, '\x26amp;')
+            .replace(/</g, '\x26lt;')
+            .replace(/>/g, '\x26gt;')
+            .replace(/"/g, '\x26quot;')
+            .replace(/'/g, '\x26#039;');
     };
 
     // Performance: Debounce search input
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Retry icon refresh after a brief delay
                     setTimeout(() => window.SHHub?.refreshIcons?.(), 100);
                 }
-            } catch (e) { console.error("Cache parse failed", e); }
+            } catch (e) { window.SHHub?.logDevError?.('Browse cache parse', e); }
         }
 
         // Modern Skeleton Loading
@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Load local services immediately for instant display
         let services = window.SHHub?.getAllServices?.() ?? [];
-        
+
         // If API is configured, try to fetch fresh data in the background
         if (window.SHHub?.isApiMode?.() && window.SHHub?.apiGetServices) {
             try {
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (requestId !== latestRequestId) return;
-                
+
                 if (Array.isArray(apiServices) && apiServices.length > 0) {
                     services = apiServices;
                     // Update cache if this was a general browse (no filters)
@@ -277,8 +277,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 if (requestId !== latestRequestId) return;
+                window.SHHub?.logDevError?.('fetchServices API', error);
                 // Silently fall back to local services already loaded above
-                console.log("API unavailable, using local services");
             }
         }
 
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             apiRatingsCache.set(providerId, { average: 0, count: 0 });
                         }
                     } catch (e) {
-                        console.error(`Failed to fetch reviews for provider ${providerId}:`, e);
+                        window.SHHub?.logDevError?.(`fetchReviews for provider ${providerId}`, e);
                     }
                 }));
             }
@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         servicesGrid.innerHTML = services.map(renderServiceCard).join('');
-        
+
         window.SHHub?.refreshIcons?.();
         // Retry icon refresh after a brief delay to ensure icons render properly
         setTimeout(() => window.SHHub?.refreshIcons?.(), 100);
@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const id = btn.getAttribute('data-id');
             const added = window.SHHub?.toggleFavorite?.(id);
-            
+
             const icon = btn.querySelector('i');
             if (added) {
                 icon.classList.add('fill-rose-500', 'text-rose-500');

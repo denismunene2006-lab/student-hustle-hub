@@ -35,17 +35,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (servicesResult.status === 'fulfilled') {
                 userServices = servicesResult.value;
             } else {
-                console.error("Failed to fetch user services:", servicesResult.reason);
+                window.SHHub?.logDevError?.('Failed to fetch user services', servicesResult.reason);
             }
 
             if (reviewsResult.status === 'fulfilled') {
                 userReviews = reviewsResult.value;
             } else {
-                console.error("Failed to fetch user reviews:", reviewsResult.reason);
+                window.SHHub?.logDevError?.('Failed to fetch user reviews', reviewsResult.reason);
             }
         } catch (error) {
-            console.error("Failed to load profile data from API:", error);
-            notFoundEl.innerHTML = `<p>Could not load profile. The server might be down or the user does not exist.</p>`;
+            window.SHHub?.logDevError?.('Failed to load profile data from API', error);
+            notFoundEl.innerHTML = `
+                <p>We could not load this profile. The server may be temporarily unavailable, or this student does not exist.</p>
+                <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">Please try again later.</p>
+            `;
         }
     } else if (userId) {
         // Fallback to local data if not in API mode

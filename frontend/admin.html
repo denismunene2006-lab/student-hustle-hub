@@ -343,8 +343,10 @@
                             window.SHHub?.setUserAdminLocal?.(userId, nextAdmin);
                         }
                         await loadAdminData();
+                        window.SHHub?.showToast?.(`User ${nextAdmin ? 'promoted to' : 'demoted from'} admin.`, 'success');
                     } catch (error) {
-                        alert(error?.message || 'Failed to update user role.');
+                        window.SHHub?.logDevError?.('Toggle admin', error);
+                        window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to update user role.'), 'error');
                     }
                     return;
                 }
@@ -374,8 +376,10 @@
                             window.SHHub?.setUserSuspendedLocal?.(userId, nextSuspended, reason);
                         }
                         await loadAdminData();
+                        window.SHHub?.showToast?.(nextSuspended ? 'User suspended.' : 'User unsuspended.', 'success');
                     } catch (error) {
-                        alert(error?.message || 'Failed to update user status.');
+                        window.SHHub?.logDevError?.('Toggle suspend', error);
+                        window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to update user status.'), 'error');
                     }
                 }
             });
@@ -399,8 +403,10 @@
                         window.SHHub?.adminDeleteServiceLocal?.(serviceId);
                     }
                     await loadAdminData();
+                    window.SHHub?.showToast?.('Service deleted.', 'success');
                 } catch (error) {
-                    alert(error?.message || 'Failed to delete service.');
+                    window.SHHub?.logDevError?.('Admin delete service', error);
+                    window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to delete service.'), 'error');
                 }
             });
 
@@ -423,8 +429,10 @@
                         window.SHHub?.adminDeleteReviewLocal?.(reviewId);
                     }
                     await loadAdminData();
+                    window.SHHub?.showToast?.('Review deleted.', 'success');
                 } catch (error) {
-                    alert(error?.message || 'Failed to delete review.');
+                    window.SHHub?.logDevError?.('Admin delete review', error);
+                    window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to delete review.'), 'error');
                 }
             });
 
