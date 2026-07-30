@@ -1495,8 +1495,8 @@
 
       const prompt = document.createElement('div');
       prompt.id = 'shhub-sw-update-prompt';
-      prompt.className = 'fixed bottom-20 right-4 z-[90] max-w-sm';
-      prompt.style.animation = 'slide-in-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+      prompt.className = 'fixed top-4 right-4 z-[90] max-w-sm';
+      prompt.style.animation = 'slide-in-down 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
       prompt.innerHTML =
         '<div class="floating-footer-card rounded-2xl p-4 shadow-xl">' +
           '<div class="flex items-start gap-3">' +

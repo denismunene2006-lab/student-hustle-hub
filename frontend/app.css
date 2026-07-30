@@ -250,6 +250,13 @@ html.dark .floating-footer-card {
   }
 }
 
+@keyframes slide-in-down {
+  from {
+    transform: translateY(-100%) scale(0.9);
+    opacity: 0;
+  }
+}
+
 @keyframes drift-campus-1 {
   0% {
     transform: translate3d(-2%, -1.5%, 0) scale(1.02);
