@@ -82,7 +82,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Other static assets (CSS, JS, images): cache first, network fallback
+  // JS, CSS files: network first, cache fallback (ensures fresh scripts/styles after update)
+  if (url.pathname.endsWith('.js') || url.pathname.endsWith('.css')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Other static assets (images, fonts, etc.): cache first, network fallback
   event.respondWith(
     caches.match(request).then((cached) => {
       return cached || fetch(request).then((response) => {
