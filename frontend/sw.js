@@ -1,7 +1,7 @@
 // Student Hustle Hub - Service Worker
 // Increment this version string on each deploy to trigger updates
-const SW_VERSION = '2026-07-30-v1';
-const CACHE = 'shhub-v3';
+const SW_VERSION = '2026-07-30-v2';
+const CACHE = 'shhub-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -22,8 +22,8 @@ const HTML_PAGES = new Set([
 ]);
 
 self.addEventListener('install', (event) => {
-  // Notify all clients that a new SW is installing
-  self.skipWaiting();
+  // Do NOT call self.skipWaiting() here — we want the new SW to wait
+  // so the page can show the "Update Now" prompt and let the user control activation.
   event.waitUntil(
     caches.open(CACHE).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
@@ -94,7 +94,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Listen for skip-waiting message from the page
+// Listen for skip-waiting message from the page (user clicked "Update Now")
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();

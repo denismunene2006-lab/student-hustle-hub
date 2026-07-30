@@ -1529,18 +1529,27 @@
       });
     };
 
+    // Reload the page when a waiting SW takes control (e.g. from another tab)
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js').then((reg) => {
         swRegistration = reg;
 
+        // If a new SW is already waiting, show the prompt immediately
         if (reg.waiting) {
           showUpdatePrompt();
         }
 
+        // Listen for a new SW being installed
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
           if (!newWorker) return;
           newWorker.addEventListener('statechange', () => {
+            // When the new SW finishes installing and is now waiting,
+            // and there's an active controller (not first install), show the prompt
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               showUpdatePrompt();
             }
