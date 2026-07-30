@@ -1,4 +1,6 @@
 // Student Hustle Hub - Service Worker
+// Increment this version string on each deploy to trigger updates
+const SW_VERSION = '2026-07-30-v1';
 const CACHE = 'shhub-v3';
 const ASSETS_TO_CACHE = [
   '/',
@@ -20,10 +22,12 @@ const HTML_PAGES = new Set([
 ]);
 
 self.addEventListener('install', (event) => {
+  // Notify all clients that a new SW is installing
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
@@ -88,4 +92,11 @@ self.addEventListener('fetch', (event) => {
       });
     })
   );
+});
+
+// Listen for skip-waiting message from the page
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

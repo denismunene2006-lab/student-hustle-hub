@@ -1484,6 +1484,74 @@
     }, { passive: true });
   };
 
+  const registerServiceWorker = () => {
+    if (!('serviceWorker' in navigator)) return;
+
+    let swRegistration = null;
+
+    const showUpdatePrompt = () => {
+      const existing = document.getElementById('shhub-sw-update-prompt');
+      if (existing) existing.remove();
+
+      const prompt = document.createElement('div');
+      prompt.id = 'shhub-sw-update-prompt';
+      prompt.className = 'fixed bottom-20 right-4 z-[90] max-w-sm';
+      prompt.style.animation = 'slide-in-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+      prompt.innerHTML =
+        '<div class="floating-footer-card rounded-2xl p-4 shadow-xl">' +
+          '<div class="flex items-start gap-3">' +
+            '<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white">' +
+              '<i data-lucide="refresh-cw" class="h-4 w-4"></i>' +
+            '</div>' +
+            '<div class="min-w-0 flex-1">' +
+              '<p class="text-sm font-semibold text-slate-900 dark:text-white">New version available</p>' +
+              '<p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">An update is ready. Refresh to get the latest features.</p>' +
+            '</div>' +
+          '</div>' +
+          '<div class="mt-3 flex items-center justify-end gap-2">' +
+            '<button type="button" data-sw-update-dismiss class="rounded-xl border border-slate-200/70 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700/70 dark:bg-slate-950/50 dark:text-slate-200 dark:hover:bg-slate-950/70">Later</button>' +
+            '<button type="button" data-sw-update-now class="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:brightness-95">' +
+              '<i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i> Update Now' +
+            '</button>' +
+          '</div>' +
+        '</div>';
+
+      document.body.appendChild(prompt);
+      refreshIcons();
+
+      prompt.querySelector('[data-sw-update-dismiss]').addEventListener('click', () => prompt.remove());
+      prompt.querySelector('[data-sw-update-now]').addEventListener('click', () => {
+        prompt.remove();
+        if (swRegistration && swRegistration.waiting) {
+          swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          window.location.reload();
+        }
+      });
+    };
+
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        swRegistration = reg;
+
+        if (reg.waiting) {
+          showUpdatePrompt();
+        }
+
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdatePrompt();
+            }
+          });
+        });
+      }).catch((err) => {
+        logDevError('SW registration', err);
+      });
+    });
+  };
+
   const init = () => {
     if (document.body?.dataset?.requiresAuth === 'true') requireAuth();
     const activeUser = getUser();
@@ -1491,6 +1559,7 @@
     renderNavbar();
     renderFooter();
     renderBackToTop();
+    registerServiceWorker();
     // Refresh icons with retry mechanism for better reliability
     refreshIcons();
     setTimeout(() => {
