@@ -151,11 +151,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const applyModeButtons = (mode) => {
     const setButtonState = (button, active) => {
       if (!button) return;
+      // Light mode classes
       button.classList.toggle('bg-primary', active);
       button.classList.toggle('text-white', active);
       button.classList.toggle('border-primary', active);
       button.classList.toggle('bg-white', !active);
       button.classList.toggle('text-slate-700', !active);
+      // Dark mode classes
+      button.classList.toggle('dark:bg-slate-950/50', !active);
+      button.classList.toggle('dark:text-slate-200', !active);
+      button.classList.toggle('dark:border-slate-700/60', !active);
     };
     setButtonState(modeSellerBtn, mode === 'seller');
     setButtonState(modeBuyerBtn, mode === 'buyer');

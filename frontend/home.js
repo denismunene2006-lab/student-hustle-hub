@@ -354,11 +354,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const buttonFilter = button.getAttribute('data-listing-filter');
             const isActive = buttonFilter === filterValue;
             button.setAttribute('aria-pressed', String(isActive));
+            // Light mode classes
             button.classList.toggle('bg-primary', isActive);
             button.classList.toggle('text-white', isActive);
             button.classList.toggle('border-primary', isActive);
             button.classList.toggle('bg-white', !isActive);
             button.classList.toggle('text-slate-700', !isActive);
+            // Dark mode classes
+            button.classList.toggle('dark:bg-slate-950/40', !isActive);
+            button.classList.toggle('dark:text-slate-200', !isActive);
+            button.classList.toggle('dark:border-slate-700/60', !isActive);
         });
     };
 

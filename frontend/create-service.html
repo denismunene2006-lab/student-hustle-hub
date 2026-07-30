@@ -173,12 +173,17 @@
 
                 modeButtons.forEach((button) => {
                     const active = button.getAttribute('data-listing-mode') === safeMode;
+                    // Light mode classes
                     button.classList.toggle('bg-primary', active);
                     button.classList.toggle('text-white', active);
                     button.classList.toggle('border-primary', active);
                     button.classList.toggle('hover:bg-primary/90', active);
                     button.classList.toggle('bg-white', !active);
                     button.classList.toggle('text-slate-700', !active);
+                    // Dark mode classes
+                    button.classList.toggle('dark:bg-slate-950/50', !active);
+                    button.classList.toggle('dark:text-slate-200', !active);
+                    button.classList.toggle('dark:border-slate-700/60', !active);
                 });
 
                 if (safeMode === 'buyer') {
