@@ -1,5 +1,5 @@
 // Student Hustle Hub - Service Worker
-const CACHE = 'shhub-v2';
+const CACHE = 'shhub-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -11,6 +11,13 @@ const ASSETS_TO_CACHE = [
   '/assets/icons/icon-512x512.png',
   '/assets/favicons/favicon.ico',
 ];
+
+// HTML pages that should always check network first
+const HTML_PAGES = new Set([
+  '/index.html', '/login.html', '/register.html', '/dashboard.html',
+  '/profile.html', '/create-service.html', '/service.html', '/admin.html',
+  '/settings.html', '/guidelines.html', '/terms.html',
+]);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -39,17 +46,13 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Only cache successful responses
           if (response && response.status === 200) {
             const clone = response.clone();
             caches.open(CACHE).then((cache) => cache.put(request, clone));
           }
           return response;
         })
-        .catch(() => {
-          // Network failed, try cache as fallback
-          return caches.match(request);
-        })
+        .catch(() => caches.match(request))
     );
     return;
   }
@@ -59,7 +62,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets: cache first, network fallback
+  // HTML pages: network first, cache fallback (ensures fresh content after deploy)
+  if (HTML_PAGES.has(url.pathname) || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Other static assets (CSS, JS, images): cache first, network fallback
   event.respondWith(
     caches.match(request).then((cached) => {
       return cached || fetch(request).then((response) => {
