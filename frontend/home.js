@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p class="text-xs text-slate-500 dark:text-slate-400">${amountLabel}</p>
                     <p class="text-lg font-semibold text-secondary">${amountValue}</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center justify-end gap-2">
                     <button type="button" data-action="toggle-fav" data-id="${service._id}" class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/70 bg-white/70 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60" title="Save to favorites">
                         <i data-lucide="heart" class="h-4 w-4 ${favClass} transition-colors"></i>
                     </button>
