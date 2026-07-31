@@ -179,6 +179,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i data-lucide="message-circle" class="h-4 w-4"></i>
                         ${actionText}
                     </a>` : ''}
+                    <!-- Share on WhatsApp -->
+                    <a href="https://wa.me/?text=${encodeURIComponent('Check out this service on Student Hustle Hub:\n📌 ' + service.title + '\n💰 ' + amountValue + '\n🔗 https://student-hustle-hub.vercel.app/service.html?id=' + service._id)}" target="_blank" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60" title="Share on WhatsApp" rel="noopener noreferrer">
+                        <i data-lucide="share-2" class="h-4 w-4"></i>
+                    </a>
                     <a href="service.html?id=${service._id}" class="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
                         View
                         <i data-lucide="arrow-right" class="h-4 w-4"></i>
