@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const uniEl = getElement('user-uni');
   const ratingStatEl = getElement('stat-rating');
   const profileImg = getElement('profile-img');
+  const profilePlaceholder = getElement('profile-placeholder');
   const upload = getElement('profile-upload');
   const modeSellerBtn = getElement('mode-seller-btn');
   const modeBuyerBtn = getElement('mode-buyer-btn');
@@ -175,7 +176,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     modeEl.innerText = marketMode === 'buyer' ? 'Current mode: Buyer' : 'Current mode: Seller';
     applyModeButtons(marketMode);
     uniEl.innerText = user.university ?? '-';
-    profileImg.src = user.image || profileImg.src;
+    if (user.image) {
+      profileImg.src = user.image;
+      profileImg.classList.remove('hidden');
+      if (profilePlaceholder) profilePlaceholder.classList.add('hidden');
+    } else {
+      profileImg.classList.add('hidden');
+      if (profilePlaceholder) profilePlaceholder.classList.remove('hidden');
+    }
   };
 
   const openModal = (modal) => {
