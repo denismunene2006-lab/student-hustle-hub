@@ -73,8 +73,16 @@
 
 ### 🎨 UI/UX
 - **Mobile-first responsive design** — fixed navbar and floating footer
-- **Dark mode** — early theme hydration in `<head>` prevents flash during navigation
+- **Dark mode** — early theme hydration in `<head>` prevents flash during navigation, with full dark mode class synchronization on interactive elements
 - **Smooth navigation** — single-page-app feel with traditional HTML pages
+- **Loading spinners** — all async form submissions (login, register, create/edit service, profile save) show inline spinners and disable buttons to prevent double-clicks
+- **Password strength indicator** — real-time 4-bar visual meter on registration with labels (Weak → Fair → Good → Strong)
+- **Back-to-top button** — floating button appears after scrolling 400px, smooth scrolls to top
+- **Clear search button** — inline (×) button inside the search input clears and re-fetches results
+- **Auto-growing textarea** — description fields expand vertically as the user types
+- **Modal Escape key support** — pressing `Esc` closes profile and service edit modals
+- **Empty states** — helpful empty state messages with call-to-action buttons on dashboard (services, job history) and browse page
+- **Confirmation dialogs** — destructive actions (delete service, cancel job) prompt for confirmation before executing
 
 ### 🛡️ Error Handling
 - **User-friendly error messages** — technical errors like "Failed to fetch" and "NetworkError" are translated into clear, actionable messages
