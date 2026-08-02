@@ -110,6 +110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let myJobsCache = [];
 
   const getMarketMode = (user) => (user?.marketMode === 'buyer' ? 'buyer' : 'seller');
+  const escapeHtml = (value) => window.SHHub?.escapeHtml?.(value) ?? String(value ?? '');
 
   const formatKES = (value) => {
     if (window.SHHub?.formatKES) return window.SHHub.formatKES(value);
@@ -363,8 +364,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         return `
           <tr>
-            <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">${getJobTitle(job)}</td>
-            <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${getCounterparty(job)}</td>
+            <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">${escapeHtml(getJobTitle(job))}</td>
+            <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${escapeHtml(getCounterparty(job))}</td>
             <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${date}</td>
             <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${formatKES(amount)}</td>
             <td class="px-4 py-3">
@@ -416,12 +417,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-1.5">
-              <p class="text-xs font-medium text-slate-500 dark:text-slate-400">${service.category}</p>
+              <p class="text-xs font-medium text-slate-500 dark:text-slate-400">${escapeHtml(service.category)}</p>
               <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${service.listingType === 'buyer' ? 'bg-amber-500/15 text-amber-700 ring-1 ring-amber-500/30 dark:bg-amber-400/15 dark:text-amber-200' : 'bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500/30 dark:bg-emerald-400/15 dark:text-emerald-200'}">${service.listingType === 'buyer' ? 'Buyer' : 'Seller'}</span>
             </div>
-            <h3 class="mt-1 truncate text-lg font-semibold tracking-tight text-slate-900 dark:text-white">${service.title}</h3>
+            <h3 class="mt-1 truncate text-lg font-semibold tracking-tight text-slate-900 dark:text-white">${escapeHtml(service.title)}</h3>
             <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">${formatKES(service.price)}</p>
-            <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">Contact: ${formatKenyanPhone(service.contactInfo)}</p>
+            <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">Contact: ${escapeHtml(formatKenyanPhone(service.contactInfo))}</p>
           </div>
           <span class="rounded-full bg-slate-900/5 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-white/10 dark:text-slate-200">
             ${new Date(service.createdAt ?? Date.now()).toLocaleDateString()}
@@ -429,15 +430,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
 
         <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-200/50 pt-4 dark:border-slate-700/50">
-          <a href="service.html?id=${service._id}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60">
+          <a href="service.html?id=${escapeHtml(service._id)}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-200 dark:hover:bg-slate-950/60">
             <i data-lucide="external-link" class="h-4 w-4"></i>
             View
           </a>
-          <button type="button" data-action="edit-service" data-id="${service._id}" class="inline-flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/15">
+          <button type="button" data-action="edit-service" data-id="${escapeHtml(service._id)}" class="inline-flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/15">
             <i data-lucide="pencil" class="h-4 w-4"></i>
             Edit
           </button>
-          <button type="button" data-action="delete-service" data-id="${service._id}" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-600/10 hover:text-rose-700 dark:text-rose-300 dark:hover:bg-rose-300/10 dark:hover:text-rose-200">
+          <button type="button" data-action="delete-service" data-id="${escapeHtml(service._id)}" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-600/10 hover:text-rose-700 dark:text-rose-300 dark:hover:bg-rose-300/10 dark:hover:text-rose-200">
             <i data-lucide="trash-2" class="h-4 w-4"></i>
             Delete
           </button>

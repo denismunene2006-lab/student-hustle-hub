@@ -8,9 +8,9 @@ const jobSchema = new mongoose.Schema(
       required: true,
     },
     serviceSnapshot: {
-      title: { type: String, required: true },
-      category: { type: String, required: true },
-      price: { type: Number, required: true },
+      title: { type: String, required: true, maxlength: 100 },
+      category: { type: String, required: true, maxlength: 50 },
+      price: { type: Number, required: true, min: 0, max: 100000000 },
       listingType: { type: String, enum: ['seller', 'buyer'], default: 'seller' },
     },
     buyer: {
@@ -26,6 +26,7 @@ const jobSchema = new mongoose.Schema(
     note: {
       type: String,
       default: '',
+      maxlength: 1000,
     },
     status: {
       type: String,

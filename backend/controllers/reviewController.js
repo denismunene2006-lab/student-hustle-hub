@@ -17,6 +17,19 @@ const createReview = asyncHandler(async (req, res) => {
     throw new Error('Please provide rating, comment, user ID, and service ID');
   }
 
+  // Validate rating is between 1 and 5
+  const numericRating = Number(rating);
+  if (!Number.isFinite(numericRating) || numericRating < 1 || numericRating > 5) {
+    res.status(400);
+    throw new Error('Rating must be between 1 and 5');
+  }
+
+  // Validate comment length
+  if (String(comment).length > 1000) {
+    res.status(400);
+    throw new Error('Comment must be 1000 characters or less');
+  }
+
   const service = await Service.findById(serviceId);
   if (!service) {
     res.status(404);
@@ -46,7 +59,7 @@ const createReview = asyncHandler(async (req, res) => {
   }
 
   const review = await Review.create({
-    rating: Number(rating),
+    rating: numericRating,
     comment,
     reviewedUserId,
     serviceId,

@@ -21,11 +21,13 @@ const reportSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      maxlength: 200,
     },
     details: {
       type: String,
       default: '',
       trim: true,
+      maxlength: 2000,
     },
     status: {
       type: String,

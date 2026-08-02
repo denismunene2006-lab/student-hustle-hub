@@ -5,6 +5,8 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      trim: true,
+      maxlength: 100,
     },
     email: {
       type: String,
@@ -12,37 +14,47 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
+      maxlength: 254,
     },
     password: {
       type: String,
       required: false,
       default: '',
+      maxlength: 200,
     },
     googleId: {
       type: String,
       default: '',
       trim: true,
       index: true,
+      maxlength: 100,
     },
     university: {
       type: String,
       required: true,
+      trim: true,
+      maxlength: 100,
     },
     course: {
       type: String,
       required: true,
+      trim: true,
+      maxlength: 100,
     },
     image: {
       type: String,
       default: '',
+      maxlength: 2000,
     },
     whatsappNumber: {
       type: String,
       default: '',
+      maxlength: 20,
     },
     bio: {
       type: String,
       default: '',
+      maxlength: 500,
     },
     marketMode: {
       type: String,
@@ -61,6 +73,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
       trim: true,
+      maxlength: 200,
     },
   },
   {

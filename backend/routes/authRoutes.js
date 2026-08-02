@@ -10,11 +10,17 @@ const {
   checkEmailExists,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
+const {
+  authLimiter,
+  loginLimiter,
+  emailCheckLimiter,
+} = require('../middleware/securityMiddleware');
 
 const router = express.Router();
 
 router.post(
   '/register',
+  authLimiter,
   [
     check('name', 'Name is required').trim().not().isEmpty(),
     check('email', 'Please include a valid email').isEmail(),
@@ -27,6 +33,7 @@ router.post(
 
 router.post(
   '/login',
+  loginLimiter,
   [
     check('email', 'Please include a valid email').isEmail(),
     check('password', 'Password is required').not().isEmpty(),
@@ -36,13 +43,14 @@ router.post(
 
 router.post(
   '/google',
+  authLimiter,
   [
     check('credential', 'Google credential is required').not().isEmpty(),
   ],
   googleAuth
 );
 
-router.get('/exists', checkEmailExists);
+router.get('/exists', emailCheckLimiter, checkEmailExists);
 
 router.route('/me').get(protect, getMe).put(protect, updateMe);
 router.put(

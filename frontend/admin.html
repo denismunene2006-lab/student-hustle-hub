@@ -190,6 +190,8 @@
                     : '0 reviews';
             };
 
+            const escapeHtml = (value) => window.SHHub?.escapeHtml?.(value) ?? String(value ?? '');
+
             const renderUsers = (users) => {
                 if (!Array.isArray(users) || users.length === 0) {
                     usersBody.innerHTML = `
@@ -202,9 +204,9 @@
 
                 usersBody.innerHTML = users.map((user) => `
                     <tr>
-                        <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">${user.name ?? 'Student'}</td>
-                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${user.email ?? '-'}</td>
-                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${user.university ?? '-'}</td>
+                        <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">${escapeHtml(user.name ?? 'Student')}</td>
+                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${escapeHtml(user.email ?? '-')}</td>
+                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${escapeHtml(user.university ?? '-')}</td>
                         <td class="px-4 py-3">
                             <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${user.isAdmin ? 'bg-primary/15 text-primary ring-1 ring-primary/30' : 'bg-slate-900/5 text-slate-600 dark:bg-white/10 dark:text-slate-200'}">
                                 ${user.isAdmin ? 'Admin' : 'User'}
@@ -215,15 +217,15 @@
                                 <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${user.isSuspended ? 'bg-rose-500/15 text-rose-600 ring-1 ring-rose-500/30 dark:bg-rose-500/20 dark:text-rose-200' : 'bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500/25 dark:bg-emerald-500/15 dark:text-emerald-200'}">
                                     ${user.isSuspended ? 'Suspended' : 'Active'}
                                 </span>
-                                ${user.isSuspended && user.suspensionReason ? `<span class="text-xs text-slate-500 dark:text-slate-400">Reason: ${user.suspensionReason}</span>` : ''}
+                                ${user.isSuspended && user.suspensionReason ? `<span class="text-xs text-slate-500 dark:text-slate-400">Reason: ${escapeHtml(user.suspensionReason)}</span>` : ''}
                             </div>
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex flex-wrap items-center gap-2">
-                                <button type="button" data-action="toggle-admin" data-user-id="${user._id}" data-user-name="${user.name ?? ''}" data-user-email="${user.email ?? ''}" data-next-admin="${!user.isAdmin}" class="rounded-lg px-3 py-1.5 text-xs font-medium ${user._id === currentUser._id ? 'cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400' : 'bg-primary/10 text-primary hover:bg-primary/15'}" ${user._id === currentUser._id ? 'disabled' : ''}>
+                                <button type="button" data-action="toggle-admin" data-user-id="${escapeHtml(user._id)}" data-user-name="${escapeHtml(user.name ?? '')}" data-user-email="${escapeHtml(user.email ?? '')}" data-next-admin="${!user.isAdmin}" class="rounded-lg px-3 py-1.5 text-xs font-medium ${user._id === currentUser._id ? 'cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400' : 'bg-primary/10 text-primary hover:bg-primary/15'}" ${user._id === currentUser._id ? 'disabled' : ''}>
                                     ${user.isAdmin ? 'Remove admin' : 'Make admin'}
                                 </button>
-                                <button type="button" data-action="toggle-suspend" data-user-id="${user._id}" data-user-name="${user.name ?? ''}" data-user-email="${user.email ?? ''}" data-next-suspended="${!user.isSuspended}" class="rounded-lg px-3 py-1.5 text-xs font-medium ${user._id === currentUser._id ? 'cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400' : user.isSuspended ? 'bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-200 dark:hover:bg-emerald-500/20' : 'text-rose-600 hover:bg-rose-600/10 dark:text-rose-300 dark:hover:bg-rose-300/10'}" ${user._id === currentUser._id ? 'disabled' : ''}>
+                                <button type="button" data-action="toggle-suspend" data-user-id="${escapeHtml(user._id)}" data-user-name="${escapeHtml(user.name ?? '')}" data-user-email="${escapeHtml(user.email ?? '')}" data-next-suspended="${!user.isSuspended}" class="rounded-lg px-3 py-1.5 text-xs font-medium ${user._id === currentUser._id ? 'cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400' : user.isSuspended ? 'bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-200 dark:hover:bg-emerald-500/20' : 'text-rose-600 hover:bg-rose-600/10 dark:text-rose-300 dark:hover:bg-rose-300/10'}" ${user._id === currentUser._id ? 'disabled' : ''}>
                                     ${user.isSuspended ? 'Unsuspend' : 'Suspend'}
                                 </button>
                             </div>
@@ -246,10 +248,10 @@
                     <article class="rounded-xl border border-slate-200/70 bg-white/60 p-4 dark:border-slate-700/60 dark:bg-slate-950/40">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">${service.title ?? 'Untitled service'}</p>
-                                <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">${service.user?.name ?? '-'} • ${service.category ?? '-'}</p>
+                                <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">${escapeHtml(service.title ?? 'Untitled service')}</p>
+                                <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">${escapeHtml(service.user?.name ?? '-')} • ${escapeHtml(service.category ?? '-')}</p>
                             </div>
-                            <button type="button" data-action="delete-service" data-service-id="${service._id}" class="rounded-lg px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-600/10 dark:text-rose-300 dark:hover:bg-rose-300/10">
+                            <button type="button" data-action="delete-service" data-service-id="${escapeHtml(service._id)}" class="rounded-lg px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-600/10 dark:text-rose-300 dark:hover:bg-rose-300/10">
                                 Delete
                             </button>
                         </div>
@@ -273,11 +275,11 @@
                         <article class="rounded-xl border border-slate-200/70 bg-white/60 p-4 dark:border-slate-700/60 dark:bg-slate-950/40">
                             <div class="flex items-start justify-between gap-3">
                                 <div class="min-w-0">
-                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">${review.reviewerName ?? review.reviewer?.name ?? 'Student'}</p>
+                                    <p class="text-sm font-semibold text-slate-900 dark:text-white">${escapeHtml(review.reviewerName ?? review.reviewer?.name ?? 'Student')}</p>
                                     <p class="text-xs font-medium text-amber-600 dark:text-amber-300">${'★'.repeat(rating)} (${rating}/5)</p>
-                                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">${String(review.comment ?? '').trim()}</p>
+                                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">${escapeHtml(String(review.comment ?? '').trim())}</p>
                                 </div>
-                                <button type="button" data-action="delete-review" data-review-id="${review._id}" class="rounded-lg px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-600/10 dark:text-rose-300 dark:hover:bg-rose-300/10">
+                                <button type="button" data-action="delete-review" data-review-id="${escapeHtml(review._id)}" class="rounded-lg px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-600/10 dark:text-rose-300 dark:hover:bg-rose-300/10">
                                     Delete
                                 </button>
                             </div>

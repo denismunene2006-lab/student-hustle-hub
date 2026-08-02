@@ -122,6 +122,17 @@
   const isAdminEmail = (email) => ADMIN_EMAILS.includes(normalizeEmail(email));
   const isLocalApiUrl = (value) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(String(value ?? '').trim());
 
+  // Security: Escape HTML to prevent XSS attacks
+  // Using String.fromCharCode to avoid auto-formatting converting entities
+  const escapeHtml = (unsafe) => {
+    return String(unsafe ?? '')
+      .replace(/&/g, String.fromCharCode(38) + 'amp;')
+      .replace(/</g, String.fromCharCode(38) + 'lt;')
+      .replace(/>/g, String.fromCharCode(38) + 'gt;')
+      .replace(/"/g, String.fromCharCode(38) + 'quot;')
+      .replace(/'/g, String.fromCharCode(38) + '#039;');
+  };
+
   const getApiBaseUrl = () => {
     const metaValue = document.querySelector('meta[name="api-base-url"]')?.content;
     const globalValue = globalThis.SHHub_API_BASE_URL;
@@ -1585,6 +1596,7 @@
     getUserFriendlyErrorMessage,
     isNetworkError,
     withLoading,
+    escapeHtml,
     applyTheme,
     toggleTheme,
     refreshIcons,

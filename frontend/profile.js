@@ -102,6 +102,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? `★ ${ratingSummary.average.toFixed(1)} (${ratingSummary.count} reviews)`
         : 'No reviews yet';
 
+    const escapeHtml = (value) => window.SHHub?.escapeHtml?.(value) ?? String(value ?? '');
+
     // Render Services
     const servicesListEl = getElement('services-list');
 
@@ -116,11 +118,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const price = window.SHHub?.formatKES?.(service.price) ?? `KES ${service.price}`;
 
             return `
-                <a href="service.html?id=${service._id}" class="block rounded-xl border border-slate-200/70 bg-white/60 p-4 transition hover:border-primary/40 hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:hover:border-primary/50 dark:hover:bg-slate-950/60">
+                <a href="service.html?id=${escapeHtml(service._id)}" class="block rounded-xl border border-slate-200/70 bg-white/60 p-4 transition hover:border-primary/40 hover:bg-white dark:border-slate-700/60 dark:bg-slate-950/40 dark:hover:border-primary/50 dark:hover:bg-slate-950/60">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">${service.title}</p>
-                            <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">${service.category} • ${price}</p>
+                            <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">${escapeHtml(service.title)}</p>
+                            <p class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">${escapeHtml(service.category)} • ${price}</p>
                         </div>
                         <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${typeClass}">${listingType}</span>
                     </div>
@@ -136,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         reviewsListEl.innerHTML = `<div class="rounded-xl border border-slate-200/70 bg-white/60 p-4 text-sm text-slate-600 dark:border-slate-700/60 dark:bg-slate-950/40 dark:text-slate-300">No reviews yet.</div>`;
     } else {
         reviewsListEl.innerHTML = userReviews.map(review => {
-            const reviewerName = review?.reviewerName ?? 'Student';
+            const reviewerName = escapeHtml(review?.reviewerName ?? 'Student');
             const rating = Math.max(1, Math.min(5, Math.round(Number(review?.rating ?? 0))));
             const stars = '★'.repeat(rating);
             const createdAt = review?.createdAt ? new Date(review.createdAt).toLocaleDateString() : '';
@@ -150,7 +152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         </div>
                         <span class="text-xs text-slate-500 dark:text-slate-400">${createdAt}</span>
                     </div>
-                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">${String(review?.comment ?? '').trim()}</p>
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">${escapeHtml(String(review?.comment ?? '').trim())}</p>
                 </article>
             `;
         }).join('');

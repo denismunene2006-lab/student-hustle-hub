@@ -33,6 +33,7 @@
   - [Admin Access](#admin-access)
 - [🛡️ Error Handling](#️-error-handling)
 - [📈 Performance Optimizations](#-performance-optimizations)
+- [🔐 Security](#-security)
 - [🔍 SEO & Search Console](#-seo--search-console)
 - [🌐 Deployment](#-deployment)
   - [Backend on Render](#backend-on-render)
@@ -101,6 +102,7 @@
 | **Backend**   | Node.js, Express.js                                                           |
 | **Database**  | MongoDB with Mongoose ODM                                                     |
 | **Auth**      | bcrypt (passwords), JSON Web Tokens (sessions), Google OAuth 2.0              |
+| **Security**  | Helmet, express-rate-limit, express-mongo-sanitize, sanitize-html, morgan     |
 | **Hosting**   | [Vercel](https://vercel.com) (frontend) + [Render](https://render.com) (backend) |
 | **Deploy**    | `netlify.toml` + `render.yaml` for automated deployment                       |
 
@@ -276,6 +278,63 @@ The app includes lightweight performance tweaks with zero UI impact:
 - **⏳ Skeleton loading** — Browse page shows animated skeleton cards while data loads, preventing layout shifts
 
 > **Note:** For production databases with large existing datasets, verify indexes exist in MongoDB Atlas. If auto-index creation is disabled, create equivalent indexes manually.
+
+---
+
+## 🔐 Security
+
+This project has been hardened with a comprehensive set of security measures. All fixes were applied **without changing the UI/UX or removing any features**.
+
+### Backend Security
+
+| Protection | Description |
+|------------|-------------|
+| **Helmet.js** | Sets secure HTTP headers (X-Frame-Options, HSTS, X-Content-Type-Options, Referrer-Policy, etc.) |
+| **Rate Limiting** | 6 tiered rate limiters: general (100/min), auth (10/min), login (5/min), admin (30/min), write operations (10/min), email check (5/min) |
+| **JWT_SECRET Validation** | Server fails fast at startup if `JWT_SECRET` is missing or under 32 characters |
+| **Input Sanitization** | `sanitize-html` strips all HTML tags from `req.body`, `req.query`, and `req.params` to prevent stored XSS |
+| **MongoDB Operator Injection Prevention** | `express-mongo-sanitize` blocks `$gt`, `$ne`, `$where`, etc. in user input |
+| **CORS Fail-Closed** | If `ALLOWED_ORIGINS` is empty in production, all cross-origin requests are denied |
+| **Request Size Limits** | JSON limited to 10MB, URL-encoded limited to 1MB |
+| **Structured Logging** | Morgan HTTP request logging in development (dev format) and production (combined format) |
+| **Password Complexity** | New passwords require uppercase, lowercase, number, and special character |
+| **Schema Maxlengths** | All Mongoose schemas enforce character limits (title 100, description 2000, comment 1000, etc.) |
+| **Audit Logging** | All admin actions (promote/demote, suspend, delete user/service/review) are recorded in a dedicated `AuditLog` collection |
+| **Dependency Auditing** | `npm audit` reports **0 vulnerabilities** |
+
+### Frontend Security
+
+| Protection | Description |
+|------------|-------------|
+| **XSS Escaping** | `escapeHtml()` utility on `window.SHHub` applied to ALL user-generated content rendered via `innerHTML` (admin panel, profiles, services, reviews, dashboards) |
+| **Hardened CDN Headers** | `netlify.toml` now sets `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`, and `X-XSS-Protection` for all routes |
+| **Removed Hardcoded Secrets** | Google Client ID removed from source code and `render.yaml` — now configured via environment variables only |
+
+### Environment Variables
+
+```sh
+# backend/.env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_32_plus_char_random_secret
+NODE_ENV=development
+ADMIN_EMAILS=admin1@example.com,admin2@example.com
+GOOGLE_CLIENT_ID=your_google_oauth_client_id
+ALLOWED_ORIGINS=https://student-hustle-hub.vercel.app
+```
+
+> **Important:** `JWT_SECRET` must be **at least 32 characters** — the server will refuse to start with a weaker secret.
+
+### Admin Audit Log
+
+Every admin action is now logged to the `AuditLog` MongoDB collection with:
+- `adminId` and `adminEmail` — who performed the action
+- `action` — what was done (set_admin, suspend_user, delete_service, etc.)
+- `targetId` and `targetType` — what was affected
+- `details` — additional context
+- `timestamp` — when it happened
+
+This provides a complete audit trail for investigating moderation issues.
 
 ---
 

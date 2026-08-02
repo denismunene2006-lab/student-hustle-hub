@@ -11,19 +11,20 @@ const {
   deleteReview,
 } = require('../controllers/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
+const { adminLimiter, writeLimiter } = require('../middleware/securityMiddleware');
 
 const router = express.Router();
 
-router.use(protect, admin);
+router.use(protect, admin, adminLimiter);
 
 router.get('/stats', getAdminStats);
 router.get('/users', getAdminUsers);
-router.put('/users/:id/role', setUserAdmin);
-router.put('/users/:id/suspend', setUserSuspended);
-router.delete('/users/:id', deleteUser);
+router.put('/users/:id/role', writeLimiter, setUserAdmin);
+router.put('/users/:id/suspend', writeLimiter, setUserSuspended);
+router.delete('/users/:id', writeLimiter, deleteUser);
 router.get('/services', getAdminServices);
-router.delete('/services/:id', deleteService);
+router.delete('/services/:id', writeLimiter, deleteService);
 router.get('/reviews', getAdminReviews);
-router.delete('/reviews/:id', deleteReview);
+router.delete('/reviews/:id', writeLimiter, deleteReview);
 
 module.exports = router;

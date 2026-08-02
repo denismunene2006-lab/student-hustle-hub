@@ -11,18 +11,24 @@ const serviceSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please add a title'],
       trim: true,
+      maxlength: 100,
     },
     description: {
       type: String,
       required: [true, 'Please add a description'],
+      maxlength: 2000,
     },
     category: {
       type: String,
       required: [true, 'Please add a category'],
+      trim: true,
+      maxlength: 50,
     },
     price: {
       type: Number,
       required: [true, 'Please add a price'],
+      min: 0,
+      max: 100000000,
     },
     listingType: {
       type: String,
@@ -33,6 +39,7 @@ const serviceSchema = new mongoose.Schema(
     contactInfo: {
       type: String,
       required: [true, 'Please add contact information'],
+      maxlength: 20,
     },
   },
   {

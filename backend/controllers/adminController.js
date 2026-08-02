@@ -4,6 +4,7 @@ const Service = require('../models/Service');
 const Review = require('../models/reviewModel');
 const Job = require('../models/Job');
 const Report = require('../models/Report');
+const AuditLog = require('../models/AuditLog');
 const { normalizeKenyanPhone } = require('../utils/phone');
 
 const mapUser = (user) => ({
@@ -22,6 +23,23 @@ const mapUser = (user) => ({
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
 });
+
+// Helper to create an audit log entry
+const createAuditLog = async (req, action, targetId, targetType, details = '') => {
+  try {
+    await AuditLog.create({
+      adminId: req.user._id,
+      adminEmail: req.user.email,
+      action,
+      targetId,
+      targetType,
+      details: String(details ?? '').trim().slice(0, 2000),
+    });
+  } catch (error) {
+    // Audit logging should never break the main operation
+    console.error('[AuditLog Error]', error.message);
+  }
+};
 
 // @desc    Get admin dashboard stats
 // @route   GET /api/admin/stats
@@ -97,6 +115,15 @@ const setUserAdmin = asyncHandler(async (req, res) => {
   user.isAdmin = enabled;
   await user.save();
 
+  // Audit log
+  await createAuditLog(
+    req,
+    enabled ? 'set_admin' : 'remove_admin',
+    user._id,
+    'user',
+    `Admin ${enabled ? 'granted to' : 'removed from'} ${user.email}`
+  );
+
   res.json(mapUser(user));
 });
 
@@ -122,10 +149,19 @@ const setUserSuspended = asyncHandler(async (req, res) => {
   }
 
   const shouldSuspend = Boolean(req.body?.isSuspended);
-  const reason = String(req.body?.reason ?? '').trim();
+  const reason = String(req.body?.reason ?? '').trim().slice(0, 200);
   user.isSuspended = shouldSuspend;
   user.suspensionReason = shouldSuspend ? reason : '';
   await user.save();
+
+  // Audit log
+  await createAuditLog(
+    req,
+    shouldSuspend ? 'suspend_user' : 'unsuspend_user',
+    user._id,
+    'user',
+    shouldSuspend ? `Suspended ${user.email}. Reason: ${reason || 'No reason provided'}` : `Unsuspended ${user.email}`
+  );
 
   res.json(mapUser(user));
 });
@@ -181,6 +217,15 @@ const deleteUser = asyncHandler(async (req, res) => {
     Service.deleteMany({ user: user._id }),
   ]);
 
+  // Audit log before deleting the user
+  await createAuditLog(
+    req,
+    'delete_user',
+    user._id,
+    'user',
+    `Deleted user ${user.email} (${user.name})`
+  );
+
   await user.deleteOne();
 
   res.json({ message: 'User removed' });
@@ -212,6 +257,15 @@ const deleteService = asyncHandler(async (req, res) => {
     Job.deleteMany({ service: service._id }),
     Report.deleteMany({ service: service._id }),
   ]);
+
+  // Audit log
+  await createAuditLog(
+    req,
+    'delete_service',
+    service._id,
+    'service',
+    `Deleted service "${service.title}" (${service.category})`
+  );
 
   await service.deleteOne();
   res.json({ message: 'Service removed' });
@@ -250,6 +304,16 @@ const deleteReview = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Review not found');
   }
+
+  // Audit log
+  await createAuditLog(
+    req,
+    'delete_review',
+    review._id,
+    'review',
+    `Deleted review with rating ${review.rating}`
+  );
+
   await review.deleteOne();
   res.json({ message: 'Review removed' });
 });

@@ -70,6 +70,20 @@ const createService = asyncHandler(async (req, res) => {
       throw new Error('Please fill all required fields');
     }
 
+    // Validate field lengths
+    if (String(title).length > 100) {
+      res.status(400);
+      throw new Error('Title must be 100 characters or less');
+    }
+    if (String(description).length > 2000) {
+      res.status(400);
+      throw new Error('Description must be 2000 characters or less');
+    }
+    if (String(category).length > 50) {
+      res.status(400);
+      throw new Error('Category must be 50 characters or less');
+    }
+
     if (!normalizedContactInfo) {
       res.status(400);
       throw new Error('Enter a Kenyan WhatsApp number like +254712345678');
@@ -127,6 +141,20 @@ const updateService = asyncHandler(async (req, res) => {
     if (hasContactInfo && !normalizedContactInfo) {
       res.status(400);
       throw new Error('Enter a Kenyan WhatsApp number like +254712345678');
+    }
+
+    // Validate field lengths
+    if (title && String(title).length > 100) {
+      res.status(400);
+      throw new Error('Title must be 100 characters or less');
+    }
+    if (description && String(description).length > 2000) {
+      res.status(400);
+      throw new Error('Description must be 2000 characters or less');
+    }
+    if (category && String(category).length > 50) {
+      res.status(400);
+      throw new Error('Category must be 50 characters or less');
     }
 
     service.title = title || service.title;

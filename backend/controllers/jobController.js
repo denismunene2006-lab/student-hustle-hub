@@ -63,6 +63,12 @@ const createJob = asyncHandler(async (req, res) => {
     throw new Error('Service ID is required');
   }
 
+  // Validate note length
+  if (note && String(note).length > 1000) {
+    res.status(400);
+    throw new Error('Note must be 1000 characters or less');
+  }
+
   const service = await Service.findById(serviceId).populate('user', '_id');
   if (!service) {
     res.status(404);

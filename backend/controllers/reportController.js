@@ -39,13 +39,23 @@ const createReport = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Reason is too short');
   }
+  if (cleanedReason.length > 200) {
+    res.status(400);
+    throw new Error('Reason must be 200 characters or less');
+  }
+
+  const cleanedDetails = String(details ?? '').trim();
+  if (cleanedDetails.length > 2000) {
+    res.status(400);
+    throw new Error('Details must be 2000 characters or less');
+  }
 
   const report = await Report.create({
     reporter: req.user._id,
     reportedUser: reportedUserId,
     service: service?._id ?? null,
     reason: cleanedReason,
-    details: String(details ?? '').trim(),
+    details: cleanedDetails,
   });
 
   res.status(201).json({ ok: true, id: report._id });

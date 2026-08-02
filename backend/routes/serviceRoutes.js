@@ -9,6 +9,7 @@ const {
   deleteService,
 } = require('../controllers/serviceController');
 const { protect } = require('../middleware/authMiddleware');
+const { writeLimiter } = require('../middleware/securityMiddleware');
 
 // The order of routes is important. More specific routes should come first.
 
@@ -20,13 +21,13 @@ router.get('/my-services', protect, getMyServices);
 router.get('/', getServices);
 
 // Private route to create a new service
-router.post('/', protect, createService);
+router.post('/', protect, writeLimiter, createService);
 
 // Routes for a specific service by ID
 router
   .route('/:id')
   .get(getServiceById) // Public
-  .put(protect, updateService) // Private
-  .delete(protect, deleteService); // Private
+  .put(protect, writeLimiter, updateService) // Private
+  .delete(protect, writeLimiter, deleteService); // Private
 
 module.exports = router;

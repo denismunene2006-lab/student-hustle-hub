@@ -6,8 +6,9 @@ const { validationResult } = require('express-validator');
 const { OAuth2Client } = require('google-auth-library');
 const { normalizeKenyanPhone } = require('../utils/phone');
 
-const DEFAULT_GOOGLE_CLIENT_ID = '947039282232-c3t04h5tuehfqi5h8psjqa12rtd0igt6.apps.googleusercontent.com';
-const googleClientId = String(process.env.GOOGLE_CLIENT_ID ?? DEFAULT_GOOGLE_CLIENT_ID).trim();
+// Google Client ID must come from environment variables only.
+// No hardcoded fallback - this prevents using a public client ID for auth.
+const googleClientId = String(process.env.GOOGLE_CLIENT_ID ?? '').trim();
 const googleClient = googleClientId ? new OAuth2Client(googleClientId) : null;
 
 const generateToken = (id) => {
@@ -111,6 +112,20 @@ const registerUser = asyncHandler(async (req, res) => {
 
   const { name, email, password, university, course } = req.body;
   const normalizedEmail = normalizeEmail(email);
+
+  // Validate field lengths
+  if (String(name ?? '').length > 100) {
+    res.status(400);
+    throw new Error('Name must be 100 characters or less');
+  }
+  if (String(university ?? '').length > 100) {
+    res.status(400);
+    throw new Error('University must be 100 characters or less');
+  }
+  if (String(course ?? '').length > 100) {
+    res.status(400);
+    throw new Error('Course must be 100 characters or less');
+  }
 
   const userExists = await User.findOne({
     email: { $regex: new RegExp(`^${escapeRegExp(normalizedEmail)}$`, 'i') },
@@ -290,6 +305,28 @@ const updateMe = asyncHandler(async (req, res) => {
       throw new Error('Email is required');
     }
 
+    // Validate field lengths
+    if (String(req.body?.name ?? user.name).length > 100) {
+      res.status(400);
+      throw new Error('Name must be 100 characters or less');
+    }
+    if (String(req.body?.university ?? user.university).length > 100) {
+      res.status(400);
+      throw new Error('University must be 100 characters or less');
+    }
+    if (String(req.body?.course ?? user.course).length > 100) {
+      res.status(400);
+      throw new Error('Course must be 100 characters or less');
+    }
+    if (String(req.body?.bio ?? user.bio ?? '').length > 500) {
+      res.status(400);
+      throw new Error('Bio must be 500 characters or less');
+    }
+    if (String(req.body?.image ?? user.image ?? '').length > 2000) {
+      res.status(400);
+      throw new Error('Image URL is too long');
+    }
+
     if (nextEmail !== user.email) {
       const existing = await User.findOne({
         email: { $regex: new RegExp(`^${escapeRegExp(nextEmail)}$`, 'i') },
@@ -350,6 +387,13 @@ const updatePassword = asyncHandler(async (req, res) => {
     throw new Error('Password must be 8 or more characters');
   }
 
+  // Password complexity: require uppercase, lowercase, number, and special character
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  if (!passwordRegex.test(String(newPassword))) {
+    res.status(400);
+    throw new Error('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+  }
+
   const user = await User.findById(req.user._id);
   if (!user) {
     res.status(404);
@@ -375,8 +419,6 @@ const updatePassword = asyncHandler(async (req, res) => {
 
   res.json({ ok: true });
 });
-
-module.exports = { registerUser, loginUser, googleAuth, getMe, updateMe, updatePassword };
 
 const checkEmailExists = asyncHandler(async (req, res) => {
   const email = String(req.query?.email ?? '').trim().toLowerCase();

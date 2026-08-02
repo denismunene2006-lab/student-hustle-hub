@@ -416,6 +416,8 @@
                 return { average: Number.isFinite(average) ? average : 0, count };
             };
 
+            const escapeHtml = (value) => window.SHHub?.escapeHtml?.(value) ?? String(value ?? '');
+
             const loadReviews = async () => {
                 let reviews = [];
                 if (isApiMode && window.SHHub?.apiGetReviewsForUser) {
@@ -449,7 +451,7 @@
                 }
 
                 reviewsListEl.innerHTML = safeReviews.map((review) => {
-                    const reviewerName = review?.reviewerName ?? review?.reviewer?.name ?? 'Student';
+                    const reviewerName = escapeHtml(review?.reviewerName ?? review?.reviewer?.name ?? 'Student');
                     const rating = Math.max(1, Math.min(5, Math.round(Number(review?.rating ?? 0))));
                     const stars = '★'.repeat(rating);
                     const createdAt = review?.createdAt ? new Date(review.createdAt).toLocaleDateString() : '';
@@ -462,7 +464,7 @@
                                 </div>
                                 <span class="text-xs text-slate-500 dark:text-slate-400">${createdAt}</span>
                             </div>
-                            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">${String(review?.comment ?? '').trim()}</p>
+                            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">${escapeHtml(String(review?.comment ?? '').trim())}</p>
                         </article>
                     `;
                 }).join('');
