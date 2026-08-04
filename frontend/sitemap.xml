@@ -11,6 +11,16 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://student-hustle-hub.vercel.app/profile.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://student-hustle-hub.vercel.app/service.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://student-hustle-hub.vercel.app/guidelines.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

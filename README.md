@@ -33,6 +33,7 @@
   - [Admin Access](#admin-access)
 - [🛡️ Error Handling](#️-error-handling)
 - [📈 Performance Optimizations](#-performance-optimizations)
+- [📱 PWA & Offline Support](#-pwa--offline-support)
 - [🔐 Security](#-security)
 - [🔍 SEO & Search Console](#-seo--search-console)
 - [🌐 Deployment](#-deployment)
@@ -103,6 +104,8 @@
 | **Database**  | MongoDB with Mongoose ODM                                                     |
 | **Auth**      | bcrypt (passwords), JSON Web Tokens (sessions), Google OAuth 2.0              |
 | **Security**  | Helmet, express-rate-limit, express-mongo-sanitize, sanitize-html, morgan     |
+| **PWA**       | Service Worker, Web App Manifest, offline-first caching                       |
+| **Styling**   | Tailwind CSS (bundled locally), Lucide Icons (bundled locally), Manrope font (bundled locally) |
 | **Hosting**   | [Vercel](https://vercel.com) (frontend) + [Render](https://render.com) (backend) |
 | **Deploy**    | `netlify.toml` + `render.yaml` for automated deployment                       |
 
@@ -126,11 +129,20 @@ student-hustle-hub/
 │
 ├── frontend/                  # Client-side static files
 │   ├── assets/                # Images, icons, fonts
+│   │   ├── fonts/             # Manrope font files (bundled locally)
+│   │   ├── images/            # Background images (bundled locally)
+│   │   ├── icons/             # PWA app icons
+│   │   └── favicons/          # Favicon files
+│   ├── vendor/                # Third-party libraries (bundled locally)
+│   │   ├── tailwind.js        # Tailwind CSS runtime (local)
+│   │   └── lucide.js          # Lucide icons (local)
 │   ├── js/                    # Client-side JavaScript modules
 │   │   └── seo.js             # Dynamic SEO metadata injection
 │   ├── app.css                # Global stylesheet
 │   ├── app.js                 # Shared client logic (error handling, auth, API, UI)
 │   ├── config.js              # Frontend configuration (API URL, Google Client ID)
+│   ├── sw.js                  # Service Worker (offline caching)
+│   ├── manifest.json          # PWA Web App Manifest
 │   ├── dashboard.js           # Dashboard page logic
 │   ├── home.js                # Homepage logic
 │   ├── profile.js             # Profile page logic
@@ -278,6 +290,51 @@ The app includes lightweight performance tweaks with zero UI impact:
 - **⏳ Skeleton loading** — Browse page shows animated skeleton cards while data loads, preventing layout shifts
 
 > **Note:** For production databases with large existing datasets, verify indexes exist in MongoDB Atlas. If auto-index creation is disabled, create equivalent indexes manually.
+
+---
+
+## 📱 PWA & Offline Support
+
+The app is a fully installable Progressive Web App (PWA) with comprehensive offline support:
+
+### 📦 Locally Bundled Assets
+
+All third-party assets are bundled locally — **no CDN dependencies**:
+
+| Asset | Source | Local Path |
+|-------|--------|------------|
+| **Tailwind CSS** | `cdn.tailwindcss.com` | `frontend/vendor/tailwind.js` |
+| **Lucide Icons** | `unpkg.com/lucide@latest` | `frontend/vendor/lucide.js` |
+| **Manrope Font** (5 weights) | `fonts.googleapis.com` | `frontend/assets/fonts/` |
+| **Background Image** | `images.unsplash.com` | `frontend/assets/images/campus-bg.jpg` |
+
+### 🔄 Service Worker Caching Strategy (`frontend/sw.js`)
+
+| Resource Type | Strategy |
+|---------------|----------|
+| **Core assets** (22 files) | Pre-cached on install (HTML, CSS, JS, vendor, fonts, images, icons, manifest) |
+| **HTML pages** (11 pages) | Network-first with cache fallback (fresh content after deploy) |
+| **JS/CSS files** | Network-first with cache fallback (fresh scripts/styles after update) |
+| **Font files** | Cache-first (fonts rarely change) |
+| **External origins** (Pravatar, etc.) | Network-first with cache fallback (cached on first fetch) |
+| **API requests** | Network-only (never cached) |
+| **Google OAuth** | Network-only (requires live connection) |
+
+### 🚀 PWA Features
+
+- **Installable** — Web App Manifest with 192x192 and 512x512 icons
+- **Standalone display** — App launches in its own window
+- **Offline-first** — All static assets load from cache when offline
+- **Update prompt** — Users are notified when a new version is available with "Update Now" / "Later" options
+- **Theme color** — `#0F766E` brand color for browser UI
+- **Portrait orientation** — Optimized for mobile use
+
+### 🧪 Testing Offline
+
+1. Open the app in Chrome/Edge
+2. Open **DevTools** → **Application** → **Service Workers**
+3. Check **Offline** in the Network tab
+4. Reload the page — the app loads fully styled with all icons, fonts, and images
 
 ---
 
