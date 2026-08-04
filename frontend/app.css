@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+@import url("assets/fonts/manrope.css");
 
 /* Shared styling for the static (GitHub Pages) version */
 
@@ -48,7 +48,7 @@ nav.app-navbar-shell {
 }
 
 .app-bg::before {
-  background-image: url("https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=2200&q=80");
+  background-image: url("assets/images/campus-bg.jpg");
   background-position: center 48%;
   opacity: 0.26;
   mix-blend-mode: multiply;

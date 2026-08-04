@@ -1,7 +1,7 @@
 // Student Hustle Hub - Service Worker
 // Increment this version string on each deploy to trigger updates
-const SW_VERSION = '2026-07-30-v2';
-const CACHE = 'shhub-v4';
+const SW_VERSION = '2026-08-04-v1';
+const CACHE = 'shhub-v5';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -9,9 +9,22 @@ const ASSETS_TO_CACHE = [
   '/app.js',
   '/config.js',
   '/manifest.json',
+  '/sw.js',
+  '/vendor/tailwind.js',
+  '/vendor/lucide.js',
+  '/assets/fonts/manrope.css',
+  '/assets/fonts/manrope-400.ttf',
+  '/assets/fonts/manrope-500.ttf',
+  '/assets/fonts/manrope-600.ttf',
+  '/assets/fonts/manrope-700.ttf',
+  '/assets/fonts/manrope-800.ttf',
+  '/assets/images/campus-bg.jpg',
   '/assets/icons/icon-192x192.png',
   '/assets/icons/icon-512x512.png',
+  '/assets/icons/icon.svg',
   '/assets/favicons/favicon.ico',
+  '/js/seo.js',
+  '/js/loadServices.js',
 ];
 
 // HTML pages that should always check network first
@@ -20,6 +33,16 @@ const HTML_PAGES = new Set([
   '/profile.html', '/create-service.html', '/service.html', '/admin.html',
   '/settings.html', '/guidelines.html', '/terms.html',
 ]);
+
+// External origins that should be cached on fetch (network-first with cache fallback)
+const CACHEABLE_EXTERNAL_ORIGINS = [
+  'cdn.tailwindcss.com',
+  'unpkg.com',
+  'fonts.googleapis.com',
+  'fonts.gstatic.com',
+  'images.unsplash.com',
+  'i.pravatar.cc',
+];
 
 self.addEventListener('install', (event) => {
   // Do NOT call self.skipWaiting() here — we want the new SW to wait
@@ -45,8 +68,21 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // CDN resources: network first, fallback to cache (for Tailwind and Lucide)
-  if (url.hostname === 'cdn.tailwindcss.com' || url.hostname === 'unpkg.com') {
+  // Only handle GET requests
+  if (request.method !== 'GET') return;
+
+  // API requests: network only, never cache
+  if (url.pathname.startsWith('/api/') || url.hostname.includes('onrender.com') || url.hostname === 'localhost') {
+    return;
+  }
+
+  // Google OAuth: network only, never cache (requires live connection)
+  if (url.hostname === 'accounts.google.com' || url.hostname === 'google.com' || url.hostname === 'gstatic.com') {
+    return;
+  }
+
+  // External CDN resources: network first, fallback to cache
+  if (CACHEABLE_EXTERNAL_ORIGINS.some((origin) => url.hostname === origin || url.hostname.endsWith('.' + origin))) {
     event.respondWith(
       fetch(request)
         .then((response) => {
@@ -58,11 +94,6 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => caches.match(request))
     );
-    return;
-  }
-
-  // API requests: network only, never cache
-  if (url.pathname.startsWith('/api/') || url.hostname.includes('onrender.com') || url.hostname === 'localhost') {
     return;
   }
 
@@ -98,12 +129,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Other static assets (images, fonts, etc.): cache first, network fallback
+  // Font files: cache first, network fallback (fonts rarely change)
+  if (url.pathname.endsWith('.ttf') || url.pathname.endsWith('.woff') || url.pathname.endsWith('.woff2') || url.pathname.endsWith('.otf')) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        return cached || fetch(request).then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, clone));
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Other static assets (images, manifest, etc.): cache first, network fallback
   event.respondWith(
     caches.match(request).then((cached) => {
       return cached || fetch(request).then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE).then((cache) => cache.put(request, clone));
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(request, clone));
+        }
         return response;
       });
     })
