@@ -322,7 +322,14 @@ const updateMe = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error('Bio must be 500 characters or less');
     }
-    if (String(req.body?.image ?? user.image ?? '').length > 2000) {
+    // Only validate the image when it is actually being updated.
+    // This prevents unrelated profile updates (e.g., changing marketMode, bio, course)
+    // from failing because the existing stored image (possibly a Base64 data URL)
+    // exceeds the URL length limit.
+    const hasImageUpdate = Object.prototype.hasOwnProperty.call(req.body, 'image');
+    // The frontend resizes and re-encodes profile images to max 512px Base64 data URLs,
+    // which can be 50-200KB. The User model allows up to 500000 characters to accommodate this.
+    if (hasImageUpdate && String(req.body.image ?? '').length > 500000) {
       res.status(400);
       throw new Error('Image URL is too long');
     }
@@ -342,7 +349,9 @@ const updateMe = asyncHandler(async (req, res) => {
     user.name = String(req.body?.name ?? user.name).trim();
     user.university = String(req.body?.university ?? user.university).trim();
     user.course = String(req.body?.course ?? user.course).trim();
-    user.image = String(req.body?.image ?? user.image ?? '').trim();
+    if (hasImageUpdate) {
+      user.image = String(req.body.image ?? '').trim();
+    }
     const hasWhatsappNumber = Object.prototype.hasOwnProperty.call(req.body, 'whatsappNumber');
     const whatsappInput = hasWhatsappNumber ? req.body.whatsappNumber : user.whatsappNumber ?? '';
     const normalizedWhatsapp = normalizeKenyanPhone(whatsappInput);

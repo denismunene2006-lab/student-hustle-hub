@@ -1002,8 +1002,11 @@
     if (Object.prototype.hasOwnProperty.call(body, 'whatsappNumber')) {
       body.whatsappNumber = normalizeOptionalKenyanPhone(body.whatsappNumber);
     }
+    // Use PATCH so only the provided fields are validated and updated.
+    // This prevents unrelated fields (e.g., an existing Base64 image) from
+    // being re-validated and causing spurious "Image URL is too long" errors.
     const data = await apiRequest('/auth/me', {
-      method: 'PUT',
+      method: 'PATCH',
       body,
     });
     clearPublicApiCache();

@@ -44,7 +44,9 @@ const userSchema = new mongoose.Schema(
     image: {
       type: String,
       default: '',
-      maxlength: 2000,
+      // Allow Base64 data URLs for profile images (frontend resizes to max 512px
+      // and re-encodes to JPEG/PNG, which can produce strings of 50-200KB).
+      maxlength: 500000,
     },
     whatsappNumber: {
       type: String,

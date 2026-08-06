@@ -6,6 +6,12 @@ const sanitizeHtml = require('sanitize-html');
 // This is applied to req.body, req.query, and req.params.
 const sanitizeValue = (value) => {
   if (typeof value === 'string') {
+    // Skip sanitization for Base64 data URLs (e.g., data:image/jpeg;base64,...).
+    // These are binary image data, not HTML, and sanitizing them would corrupt the image.
+    // The data:image/ scheme is safe - it cannot execute scripts or load external resources.
+    if (/^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(value)) {
+      return value;
+    }
     return sanitizeHtml(value, {
       allowedTags: [], // No HTML tags allowed
       allowedAttributes: {}, // No attributes allowed

@@ -52,7 +52,7 @@ router.post(
 
 router.get('/exists', emailCheckLimiter, checkEmailExists);
 
-router.route('/me').get(protect, getMe).put(protect, updateMe);
+router.route('/me').get(protect, getMe).put(protect, updateMe).patch(protect, updateMe);
 router.put(
   '/password',
   [

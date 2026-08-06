@@ -532,16 +532,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      currentUser =
-        (await updateProfileData({
-          name: getElement('profile-name').value,
-          email: getElement('profile-email').value,
-          university: getElement('profile-university').value,
-          course: getElement('profile-course').value,
-          marketMode: getElement('profile-market-mode').value,
-          whatsappNumber,
-          bio: getElement('profile-bio').value,
-        })) ?? currentUser;
+      // Build a PATCH-style payload containing only fields that actually changed.
+      // This prevents unrelated fields (e.g., an existing Base64 image) from being
+      // re-validated on the server and causing spurious "Image URL is too long" errors.
+      const profileUpdates = {};
+      const fieldMappings = [
+        ['profile-name', 'name', currentUser?.name ?? ''],
+        ['profile-email', 'email', currentUser?.email ?? ''],
+        ['profile-university', 'university', currentUser?.university ?? ''],
+        ['profile-course', 'course', currentUser?.course ?? ''],
+        ['profile-market-mode', 'marketMode', getMarketMode(currentUser)],
+        ['profile-whatsapp', 'whatsappNumber', formatKenyanPhone(currentUser?.whatsappNumber)],
+        ['profile-bio', 'bio', currentUser?.bio ?? ''],
+      ];
+      for (const [elementId, fieldName, originalValue] of fieldMappings) {
+        const nextValue = elementId === 'profile-whatsapp' ? whatsappNumber : getElement(elementId).value;
+        if (String(nextValue ?? '').trim() !== String(originalValue ?? '').trim()) {
+          profileUpdates[fieldName] = nextValue;
+        }
+      }
+
+      if (Object.keys(profileUpdates).length > 0) {
+        currentUser = (await updateProfileData(profileUpdates)) ?? currentUser;
+      }
       applyUserUI(currentUser);
       await renderMyServices();
 
