@@ -1,3 +1,7 @@
+// Sentry instrumentation must be the very first require so it can
+// instrument all subsequently loaded modules (Express, routes, models).
+require('./instrument');
+
 const path = require('path');
 const dotenv = require('dotenv');
 // Load environment variables immediately, before other imports.
@@ -163,6 +167,11 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/admin', adminRoutes);
 
 // ---------------- Error Handling ----------------
+// Sentry request + error handlers (current v10 SDK API). Must be registered
+// after routes and before the app's final error handler.
+const Sentry = require('@sentry/node');
+Sentry.setupExpressErrorHandler(app);
+
 app.use((req, res) => {
   res.status(404).json({ message: 'The requested resource was not found.' });
 });

@@ -20,3 +20,7 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: SENTRY_TRACES_SAMPLE_RATE
+        sync: false
