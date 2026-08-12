@@ -1325,6 +1325,7 @@
   // Sentry User Feedback state
   let sentryFeedbackOnReady = null;
   let sentryFeedbackInitialized = false;
+  let sentrySdkInitialized = false;
 
   const initSentryFeedback = () => {
     if (sentryFeedbackInitialized) return;
@@ -1334,6 +1335,14 @@
       // Sentry not loaded yet, retry
       sentryFeedbackInitialized = false;
       return;
+    }
+
+    // Initialize the Sentry SDK exactly once. The Loader Script only loads the
+    // SDK and buffers early errors; calling init() enables error monitoring and
+    // makes the feedback integration attachable via addIntegration().
+    if (!sentrySdkInitialized) {
+      sentrySdkInitialized = true;
+      window.Sentry.init({});
     }
 
     window.Sentry.lazyLoadIntegration('feedbackIntegration')
@@ -1348,8 +1357,8 @@
           showBranding: false,
           isNameRequired: false,
           isEmailRequired: false,
-          onReady: function () {
-            sentryFeedbackOnReady = this;
+          onReady: (widget) => {
+            sentryFeedbackOnReady = widget;
           },
         });
         window.Sentry.addIntegration(feedback);
