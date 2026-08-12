@@ -1322,8 +1322,59 @@
     return `<a href="${href}" class="${linkClass(isMobile, isActive)}"${isActive ? ' aria-current="page"' : ''}><i data-lucide="${icon}" class="h-4 w-4"></i>${label}</a>`;
   };
 
+  // Sentry User Feedback state
+  let sentryFeedbackOnReady = null;
+  let sentryFeedbackInitialized = false;
+
+  const initSentryFeedback = () => {
+    if (sentryFeedbackInitialized) return;
+    sentryFeedbackInitialized = true;
+
+    if (typeof window.Sentry === 'undefined') {
+      // Sentry not loaded yet, retry
+      sentryFeedbackInitialized = false;
+      return;
+    }
+
+    window.Sentry.lazyLoadIntegration('feedbackIntegration')
+      .then((feedbackIntegration) => {
+        const feedback = feedbackIntegration({
+          id: 'sentry-feedback',
+          colorScheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+          showName: false,
+          showBranding: false,
+          isNameRequired: false,
+          isEmailRequired: false,
+          onReady: function () {
+            sentryFeedbackOnReady = this;
+          },
+        });
+        window.Sentry.addIntegration(feedback);
+      })
+      .catch(() => {
+        // User Feedback will not be available
+        sentryFeedbackInitialized = false;
+      });
+  };
+
+  const openSentryFeedback = () => {
+    if (sentryFeedbackOnReady && typeof sentryFeedbackOnReady.openForm === 'function') {
+      sentryFeedbackOnReady.openForm();
+    } else {
+      // Fallback: try to initialize and open
+      sentryFeedbackInitialized = false;
+      initSentryFeedback();
+      // Retry after a short delay
+      setTimeout(() => {
+        if (sentryFeedbackOnReady && typeof sentryFeedbackOnReady.openForm === 'function') {
+          sentryFeedbackOnReady.openForm();
+        }
+      }, 500);
+    }
+  };
+
   const supportLink = (isMobile = false) =>
-    `<a href="${SUPPORT_LINK}" target="_blank" rel="noopener noreferrer" class="${buttonClass('support', isMobile)}"><i data-lucide="message-circle" class="h-4 w-4"></i>Help</a>`;
+    `<button type="button" data-action="help" class="${buttonClass('support', isMobile)}"><i data-lucide="message-circle" class="h-4 w-4"></i>Help</button>`;
 
   const buildLinks = (user, isMobile = false) => {
     const browse = navLink('index.html', 'search', 'Browse', isMobile);
@@ -1408,12 +1459,87 @@
       refreshIcons();
     });
 
+    // Help button click handler
+    host.querySelectorAll('[data-action="help"]').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        showHelpDropdown(button);
+      });
+    });
+
     // Refresh icons immediately and again after Lucide is confirmed to be loaded
     refreshIcons();
     // Double-check after a brief delay to handle slow CDN loads
     setTimeout(() => {
       refreshIcons();
     }, 50);
+  };
+
+  const showHelpDropdown = (anchor) => {
+    // Remove existing dropdown if any
+    const existing = document.getElementById('help-dropdown-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'help-dropdown-overlay';
+    overlay.className = 'fixed inset-0 z-[9999]';
+    overlay.style.backgroundColor = 'transparent';
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
+
+    const anchorRect = anchor.getBoundingClientRect();
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'absolute z-[10000] w-64 rounded-xl border border-slate-200/70 bg-white p-1.5 shadow-xl dark:border-slate-700/60 dark:bg-slate-900';
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = (anchorRect.bottom + 4) + 'px';
+
+    // Position near the right edge of the anchor to avoid overflow
+    const rightPosition = window.innerWidth - anchorRect.right;
+    dropdown.style.right = Math.max(0, rightPosition) + 'px';
+
+    dropdown.innerHTML = `
+      <p class="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Help</p>
+      <button type="button" data-help-action="whatsapp" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-emerald-950/40">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <span class="flex flex-col items-start">
+          <span class="font-semibold">WhatsApp</span>
+          <span class="text-xs font-normal text-slate-500 dark:text-slate-400">Chat with us on WhatsApp</span>
+        </span>
+      </button>
+      <button type="button" data-help-action="report" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-amber-50 dark:text-slate-200 dark:hover:bg-amber-950/40">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </span>
+        <span class="flex flex-col items-start">
+          <span class="font-semibold">Report a Problem</span>
+          <span class="text-xs font-normal text-slate-500 dark:text-slate-400">Send feedback to the team</span>
+        </span>
+      </button>
+    `;
+
+    overlay.appendChild(dropdown);
+    document.body.appendChild(overlay);
+
+    // WhatsApp action
+    dropdown.querySelector('[data-help-action="whatsapp"]').addEventListener('click', () => {
+      overlay.remove();
+      window.open(SUPPORT_LINK, '_blank', 'noopener,noreferrer');
+    });
+
+    // Report a Problem action
+    dropdown.querySelector('[data-help-action="report"]').addEventListener('click', () => {
+      overlay.remove();
+      openSentryFeedback();
+    });
+
+    // Close on click outside of the overlay
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
   };
 
   const renderFooter = () => {
@@ -1452,11 +1578,11 @@
               <div class="hidden items-center gap-2 md:flex">
                 ${quickLinks}
               </div>
-              <a href="${SUPPORT_LINK}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600">
+              <button type="button" data-action="help-footer" class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600">
                 <i data-lucide="message-circle" class="h-4 w-4"></i>
                 <span class="sm:hidden">Help</span>
                 <span class="hidden sm:inline">Help WhatsApp ${SUPPORT_NUMBER_DISPLAY}</span>
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -1469,6 +1595,12 @@
     } else {
       document.body.appendChild(footer);
     }
+
+    // Footer help button
+    footer.querySelector('[data-action="help-footer"]')?.addEventListener('click', function (e) {
+      e.preventDefault();
+      showHelpDropdown(this);
+    });
   };
 
   const renderBackToTop = () => {

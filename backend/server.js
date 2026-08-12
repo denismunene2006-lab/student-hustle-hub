@@ -149,6 +149,13 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
+// ============ TEMPORARY SENTRY TEST ROUTE ============
+// TODO: REMOVE THIS ROUTE AFTER VERIFYING SENTRY CAPTURES PRODUCTION ERRORS.
+// Deliberately throws so the existing Sentry error handler captures it.
+app.get('/api/sentry-test', (req, res) => {
+  throw new Error('Student Hustle Hub BACKEND SENTRY TEST');
+});
+
 // ---------------- API Routes ----------------
 const authRoutes = require('./routes/authRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
