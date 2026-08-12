@@ -1340,6 +1340,9 @@
       .then((feedbackIntegration) => {
         const feedback = feedbackIntegration({
           id: 'sentry-feedback',
+          // Prevent Sentry from auto-injecting its own visible "Report a Bug" button.
+          // The "Report a Problem" menu item opens the form directly via openForm().
+          autoInject: false,
           colorScheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
           showName: false,
           showBranding: false,
@@ -1475,7 +1478,7 @@
     }, 50);
   };
 
-  const showHelpDropdown = (anchor) => {
+  const showHelpDropdown = (anchor, direction = 'down') => {
     // Remove existing dropdown if any
     const existing = document.getElementById('help-dropdown-overlay');
     if (existing) existing.remove();
@@ -1493,7 +1496,14 @@
     const dropdown = document.createElement('div');
     dropdown.className = 'absolute z-[10000] w-64 rounded-xl border border-slate-200/70 bg-white p-1.5 shadow-xl dark:border-slate-700/60 dark:bg-slate-900';
     dropdown.style.position = 'fixed';
-    dropdown.style.top = (anchorRect.bottom + 4) + 'px';
+
+    if (direction === 'up') {
+      // Lower navigation (footer) is pinned to the bottom, so the dropdown opens upward.
+      dropdown.style.bottom = (window.innerHeight - anchorRect.top + 4) + 'px';
+    } else {
+      // Top navigation: open downward (unchanged behavior).
+      dropdown.style.top = (anchorRect.bottom + 4) + 'px';
+    }
 
     // Position near the right edge of the anchor to avoid overflow
     const rightPosition = window.innerWidth - anchorRect.right;
@@ -1596,10 +1606,11 @@
       document.body.appendChild(footer);
     }
 
-    // Footer help button
+    // Footer help button - the lower/ footer nav is pinned to the bottom,
+    // so its dropdown opens upward to avoid being clipped.
     footer.querySelector('[data-action="help-footer"]')?.addEventListener('click', function (e) {
       e.preventDefault();
-      showHelpDropdown(this);
+      showHelpDropdown(this, 'up');
     });
   };
 
