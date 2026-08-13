@@ -1325,7 +1325,6 @@
   // Sentry User Feedback state
   let sentryFeedbackOnReady = null;
   let sentryFeedbackInitialized = false;
-  let sentrySdkInitialized = false;
 
   const initSentryFeedback = () => {
     if (sentryFeedbackInitialized) return;
@@ -1337,14 +1336,9 @@
       return;
     }
 
-    // Initialize the Sentry SDK exactly once. The Loader Script only loads the
-    // SDK and buffers early errors; calling init() enables error monitoring and
-    // makes the feedback integration attachable via addIntegration().
-    if (!sentrySdkInitialized) {
-      sentrySdkInitialized = true;
-      window.Sentry.init({});
-    }
-
+    // NOTE: The Loader Script auto-initializes the SDK with the DSN from the
+    // script URL, so we must NOT call Sentry.init() here (an empty init would
+    // override the auto-initialized client and break the integration).
     window.Sentry.lazyLoadIntegration('feedbackIntegration')
       .then((feedbackIntegration) => {
         const feedback = feedbackIntegration({
@@ -1370,19 +1364,34 @@
   };
 
   const openSentryFeedback = () => {
+    // Primary: open the Feedback integration directly from the active client.
+    // This is the documented API for the Loader Script, which auto-initializes
+    // the client with the DSN from the script URL.
+    const client = window.Sentry?.getClient?.();
+    const feedbackIntegration = client?.getIntegration?.('Feedback');
+    if (feedbackIntegration && typeof feedbackIntegration.openForm === 'function') {
+      feedbackIntegration.openForm();
+      return;
+    }
+
+    // Fallback: use the widget captured via onReady.
     if (sentryFeedbackOnReady && typeof sentryFeedbackOnReady.openForm === 'function') {
       sentryFeedbackOnReady.openForm();
-    } else {
-      // Fallback: try to initialize and open
-      sentryFeedbackInitialized = false;
-      initSentryFeedback();
-      // Retry after a short delay
-      setTimeout(() => {
-        if (sentryFeedbackOnReady && typeof sentryFeedbackOnReady.openForm === 'function') {
-          sentryFeedbackOnReady.openForm();
-        }
-      }, 500);
+      return;
     }
+
+    // Initialize the integration (lazy) and retry after a short delay.
+    sentryFeedbackInitialized = false;
+    initSentryFeedback();
+    setTimeout(() => {
+      const retryClient = window.Sentry?.getClient?.();
+      const retryFeedback = retryClient?.getIntegration?.('Feedback');
+      if (retryFeedback && typeof retryFeedback.openForm === 'function') {
+        retryFeedback.openForm();
+      } else if (sentryFeedbackOnReady && typeof sentryFeedbackOnReady.openForm === 'function') {
+        sentryFeedbackOnReady.openForm();
+      }
+    }, 500);
   };
 
   const supportLink = (isMobile = false) =>
