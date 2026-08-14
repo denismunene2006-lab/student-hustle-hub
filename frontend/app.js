@@ -1326,72 +1326,91 @@
   let sentryFeedbackOnReady = null;
   let sentryFeedbackInitialized = false;
 
-  const initSentryFeedback = () => {
-    if (sentryFeedbackInitialized) return;
-    sentryFeedbackInitialized = true;
-
-    if (typeof window.Sentry === 'undefined') {
-      // Sentry not loaded yet, retry
-      sentryFeedbackInitialized = false;
-      return;
-    }
-
-    // NOTE: The Loader Script auto-initializes the SDK with the DSN from the
-    // script URL, so we must NOT call Sentry.init() here (an empty init would
-    // override the auto-initialized client and break the integration).
-    window.Sentry.lazyLoadIntegration('feedbackIntegration')
-      .then((feedbackIntegration) => {
-        const feedback = feedbackIntegration({
-          id: 'sentry-feedback',
-          // Prevent Sentry from auto-injecting its own visible "Report a Bug" button.
-          // The "Report a Problem" menu item opens the form directly via openForm().
-          autoInject: false,
-          colorScheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-          showName: false,
-          showBranding: false,
-          isNameRequired: false,
-          isEmailRequired: false,
-          onReady: (widget) => {
-            sentryFeedbackOnReady = widget;
-          },
-        });
-        window.Sentry.addIntegration(feedback);
-      })
-      .catch(() => {
-        // User Feedback will not be available
-        sentryFeedbackInitialized = false;
-      });
+  // Initializes the Sentry SDK exactly once. The Loader Script embeds the DSN
+  // and auto-initializes the client; calling init() again with only
+  // autoInjectFeedback:false merges into the existing config (per the Loader's
+  // patched init) and prevents the floating "Report a Bug" button.
+  let sentryInited = false;
+  const staticInitSentry = () => {
+    if (sentryInited) return;
+    sentryInited = true;
+    window.Sentry.init({ autoInjectFeedback: false });
   };
 
+  // Ensures the SDK is initialized via the Loader Script with no auto-injected
+  // "Report a Bug" button, then opens the feedback form directly.
+  let sentryOpenPromise = null;
+
   const openSentryFeedback = () => {
-    // Primary: open the Feedback integration directly from the active client.
-    // This is the documented API for the Loader Script, which auto-initializes
-    // the client with the DSN from the script URL.
-    const client = window.Sentry?.getClient?.();
-    const feedbackIntegration = client?.getIntegration?.('Feedback');
-    if (feedbackIntegration && typeof feedbackIntegration.openForm === 'function') {
-      feedbackIntegration.openForm();
+    if (typeof window.Sentry === 'undefined') {
+      // Loader script not loaded yet; retry shortly.
+      setTimeout(openSentryFeedback, 300);
       return;
     }
 
-    // Fallback: use the widget captured via onReady.
-    if (sentryFeedbackOnReady && typeof sentryFeedbackOnReady.openForm === 'function') {
-      sentryFeedbackOnReady.openForm();
+    if (sentryOpenPromise) {
+      sentryOpenPromise.then(() => sentryFeedbackOnReady?.openForm?.());
       return;
     }
 
-    // Initialize the integration (lazy) and retry after a short delay.
-    sentryFeedbackInitialized = false;
-    initSentryFeedback();
-    setTimeout(() => {
-      const retryClient = window.Sentry?.getClient?.();
-      const retryFeedback = retryClient?.getIntegration?.('Feedback');
-      if (retryFeedback && typeof retryFeedback.openForm === 'function') {
-        retryFeedback.openForm();
-      } else if (sentryFeedbackOnReady && typeof sentryFeedbackOnReady.openForm === 'function') {
-        sentryFeedbackOnReady.openForm();
+    sentryOpenPromise = (async () => {
+      try {
+        // Ensure the SDK is initialized (via the Loader's onLoad so we can pass
+        // autoInjectFeedback:false and avoid the floating "Report a Bug" button).
+        // Note: the Loader only runs callbacks registered BEFORE it finishes
+        // loading, so if the SDK is already loaded we fall back to init directly.
+        await new Promise((resolve) => {
+          if (sentryFeedbackInitialized) {
+            resolve();
+            return;
+          }
+          sentryFeedbackInitialized = true;
+          const alreadyLoaded = Boolean(window.Sentry.getClient?.());
+          const initOnce = () => {
+            staticInitSentry();
+            resolve();
+          };
+          if (alreadyLoaded) {
+            initOnce();
+          } else {
+            window.Sentry.onLoad(initOnce);
+          }
+        });
+
+        const client = window.Sentry.getClient?.();
+        if (!client) return;
+
+        // Load the real Feedback integration (SDK v8 lazy loader) and attach it
+        // to the client via the v8 API: client.addIntegration, then retrieve it
+        // and open the form directly.
+        const feedbackIntegration = await window.Sentry.lazyLoadIntegration('feedbackIntegration');
+        if (!client.getIntegration('Feedback')) {
+          const feedback = feedbackIntegration({
+            id: 'sentry-feedback',
+            // Prevent Sentry from auto-injecting its own visible "Report a Bug" button.
+            // The "Report a Problem" menu item opens the form directly via openForm().
+            autoInject: false,
+            colorScheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+            showName: false,
+            showBranding: false,
+            isNameRequired: false,
+            isEmailRequired: false,
+            onReady: (widget) => {
+              sentryFeedbackOnReady = widget;
+            },
+          });
+          client.addIntegration(feedback);
+        }
+        const attached = client.getIntegration('Feedback');
+        if (attached && typeof attached.openForm === 'function') {
+          attached.openForm();
+        } else if (sentryFeedbackOnReady && typeof sentryFeedbackOnReady.openForm === 'function') {
+          sentryFeedbackOnReady.openForm();
+        }
+      } catch {
+        // User Feedback could not be loaded/opened; do nothing.
       }
-    }, 500);
+    })();
   };
 
   const supportLink = (isMobile = false) =>
