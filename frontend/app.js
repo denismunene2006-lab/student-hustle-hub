@@ -1341,15 +1341,21 @@
   // "Report a Bug" button, then opens the feedback form directly.
   let sentryOpenPromise = null;
 
-  const openSentryFeedback = () => {
+  const openSentryFeedback = (triggerElement) => {
     if (typeof window.Sentry === 'undefined') {
       // Loader script not loaded yet; retry shortly.
-      setTimeout(openSentryFeedback, 300);
+      setTimeout(() => openSentryFeedback(triggerElement), 300);
       return;
     }
 
     if (sentryOpenPromise) {
-      sentryOpenPromise.then(() => sentryFeedbackOnReady?.openForm?.());
+      sentryOpenPromise.then(() => {
+        // The real v8 Feedback integration exposes attachTo(element), not openForm().
+        const attached = window.Sentry.getClient?.()?.getIntegration?.('Feedback');
+        if (attached && typeof attached.attachTo === 'function' && triggerElement) {
+          attached.attachTo(triggerElement);
+        }
+      });
       return;
     }
 
@@ -1381,14 +1387,13 @@
         if (!client) return;
 
         // Load the real Feedback integration (SDK v8 lazy loader) and attach it
-        // to the client via the v8 API: client.addIntegration, then retrieve it
-        // and open the form directly.
+        // to the client via the v8 API: client.addIntegration, then retrieve it.
         const feedbackIntegration = await window.Sentry.lazyLoadIntegration('feedbackIntegration');
         if (!client.getIntegration('Feedback')) {
           const feedback = feedbackIntegration({
             id: 'sentry-feedback',
             // Prevent Sentry from auto-injecting its own visible "Report a Bug" button.
-            // The "Report a Problem" menu item opens the form directly via openForm().
+            // The "Report a Problem" menu item opens the form directly via attachTo().
             autoInject: false,
             colorScheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
             showName: false,
@@ -1402,10 +1407,11 @@
           client.addIntegration(feedback);
         }
         const attached = client.getIntegration('Feedback');
-        if (attached && typeof attached.openForm === 'function') {
-          attached.openForm();
-        } else if (sentryFeedbackOnReady && typeof sentryFeedbackOnReady.openForm === 'function') {
-          sentryFeedbackOnReady.openForm();
+        // The real v8 Feedback integration exposes attachTo(element), not openForm().
+        if (attached && typeof attached.attachTo === 'function' && triggerElement) {
+          attached.attachTo(triggerElement);
+        } else if (sentryFeedbackOnReady && typeof sentryFeedbackOnReady.attachTo === 'function' && triggerElement) {
+          sentryFeedbackOnReady.attachTo(triggerElement);
         }
       } catch {
         // User Feedback could not be loaded/opened; do nothing.
@@ -1578,9 +1584,11 @@
     });
 
     // Report a Problem action
-    dropdown.querySelector('[data-help-action="report"]').addEventListener('click', () => {
+    dropdown.querySelector('[data-help-action="report"]').addEventListener('click', (e) => {
       overlay.remove();
-      openSentryFeedback();
+      // Pass the clicked button as the trigger element so Sentry's v8
+      // Feedback integration can attachTo() it and open the form directly.
+      openSentryFeedback(e.currentTarget);
     });
 
     // Close on click outside of the overlay
