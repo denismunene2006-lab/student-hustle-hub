@@ -1322,125 +1322,6 @@
     return `<a href="${href}" class="${linkClass(isMobile, isActive)}"${isActive ? ' aria-current="page"' : ''}><i data-lucide="${icon}" class="h-4 w-4"></i>${label}</a>`;
   };
 
-  // Sentry User Feedback state
-  let sentryFeedbackOnReady = null;
-  let sentryFeedbackInitialized = false;
-
-  // Initializes the Sentry SDK exactly once. The Loader Script embeds the DSN
-  // and auto-initializes the client; calling init() again with only
-  // autoInjectFeedback:false merges into the existing config (per the Loader's
-  // patched init) and prevents the floating "Report a Bug" button.
-  let sentryInited = false;
-  const staticInitSentry = () => {
-    if (sentryInited) return;
-    sentryInited = true;
-    window.Sentry.init({ autoInjectFeedback: false });
-  };
-
-  // Ensures the SDK is initialized via the Loader Script with no auto-injected
-  // "Report a Bug" button, then opens the feedback form directly.
-  let sentryOpenPromise = null;
-  let sentryFeedbackWidget = null;
-
-  const openSentryFeedback = () => {
-    if (typeof window.Sentry === 'undefined') {
-      // Loader script not loaded yet; retry shortly.
-      setTimeout(() => openSentryFeedback(), 300);
-      return;
-    }
-
-    const openWidget = () => {
-      // Sentry Feedback exposes createWidget() (returns a widget with
-      // .appendTo() / .openDialog()), so we can open the dialog directly
-      // without needing a trigger element (unlike the attachTo() API).
-      const client = window.Sentry.getClient?.();
-      const integration = client?.getIntegration?.('Feedback') || sentryFeedbackOnReady;
-      const widget = typeof integration?.createWidget === 'function'
-        ? integration.createWidget()
-        : (sentryFeedbackWidget || null);
-      if (widget && typeof widget.openDialog === 'function') {
-        widget.openDialog();
-        return true;
-      }
-      return false;
-    };
-
-    // Fast path: if the integration is already created, open immediately.
-    // This is why we no longer need the trigger element: on desktop the menu
-    // button is removed from the DOM before the async SDK finishes loading,
-    // so attachTo() (which listens for the *next* click) never fires.
-    if (sentryFeedbackWidget && typeof sentryFeedbackWidget.openDialog === 'function') {
-      sentryFeedbackWidget.openDialog();
-      return;
-    }
-
-    if (sentryOpenPromise) {
-      sentryOpenPromise.then(() => openWidget());
-      return;
-    }
-
-    sentryOpenPromise = (async () => {
-      try {
-        // Ensure the SDK is initialized (via the Loader's onLoad so we can pass
-        // autoInjectFeedback:false and avoid the floating "Report a Bug" button).
-        // Note: the Loader only runs callbacks registered BEFORE it finishes
-        // loading, so if the SDK is already loaded we fall back to init directly.
-        await new Promise((resolve) => {
-          if (sentryFeedbackInitialized) {
-            resolve();
-            return;
-          }
-          sentryFeedbackInitialized = true;
-          const alreadyLoaded = Boolean(window.Sentry.getClient?.());
-          const initOnce = () => {
-            staticInitSentry();
-            resolve();
-          };
-          if (alreadyLoaded) {
-            initOnce();
-          } else {
-            window.Sentry.onLoad(initOnce);
-          }
-        });
-
-        const client = window.Sentry.getClient?.();
-        if (!client) return;
-
-        // Load the real Feedback integration (SDK v8 lazy loader) and attach it
-        // to the client via the v8 API: client.addIntegration, then retrieve it.
-        const feedbackIntegration = await window.Sentry.lazyLoadIntegration('feedbackIntegration');
-        if (!client.getIntegration('Feedback')) {
-          const feedback = feedbackIntegration({
-            id: 'sentry-feedback',
-            // Don't inject the floating "Report a Bug" button; the menu item
-            // opens the widget dialog programmatically via openDialog().
-            autoInject: false,
-            colorScheme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-            showName: false,
-            showBranding: false,
-            isNameRequired: false,
-            isEmailRequired: false,
-            onReady: (widget) => {
-              sentryFeedbackWidget = widget;
-            },
-          });
-          client.addIntegration(feedback);
-        }
-        const attached = client.getIntegration('Feedback');
-        const widget = (sentryFeedbackWidget)
-          || (attached && typeof attached.createWidget === 'function' ? attached.createWidget() : null);
-        sentryFeedbackWidget = widget;
-        if (widget && typeof widget.openDialog === 'function') {
-          widget.openDialog();
-        } else {
-          console.warn('[Sentry Feedback] Widget is not available; cannot open "Report a Problem".', { attached, sentryFeedbackWidget });
-        }
-      } catch (err) {
-        // Keep failures visible in the console instead of silently doing nothing.
-        console.error('[Sentry Feedback] Failed to open "Report a Problem" form.', err);
-      }
-    })();
-  };
 
   const supportLink = (isMobile = false) =>
     `<button type="button" data-action="help" class="${buttonClass('support', isMobile)}"><i data-lucide="message-circle" class="h-4 w-4"></i>Help</button>`;
@@ -1565,15 +1446,28 @@
 
     if (direction === 'up') {
       // Lower navigation (footer) is pinned to the bottom, so the dropdown opens upward.
+      dropdown.classList.add('help-dropdown-footer');
       dropdown.style.bottom = (window.innerHeight - anchorRect.top + 4) + 'px';
     } else {
       // Top navigation: open downward (unchanged behavior).
       dropdown.style.top = (anchorRect.bottom + 4) + 'px';
     }
 
-    // Position near the right edge of the anchor to avoid overflow
-    const rightPosition = window.innerWidth - anchorRect.right;
-    dropdown.style.right = Math.max(0, rightPosition) + 'px';
+    // On small screens the footer Help button sits on the left, so the
+    // dropdown must open to the RIGHT of the button and stay fully inside
+    // the viewport (never past the right edge). The positioning itself is
+    // handled by the responsive CSS media query (.help-dropdown-footer);
+    // here we just expose the button's right edge as a custom property.
+    // Desktop/tablet keeps the original right-aligned positioning.
+    const isMobile = window.matchMedia('(max-width: 640px)').matches;
+    if (direction === 'up' && isMobile) {
+      dropdown.style.setProperty('--help-anchor-right', anchorRect.right + 'px');
+      dropdown.style.right = 'auto';
+    } else {
+      // Position near the right edge of the anchor to avoid overflow (unchanged).
+      const rightPosition = window.innerWidth - anchorRect.right;
+      dropdown.style.right = Math.max(0, rightPosition) + 'px';
+    }
 
     dropdown.innerHTML = `
       <p class="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Help</p>
@@ -1586,15 +1480,6 @@
           <span class="text-xs font-normal text-slate-500 dark:text-slate-400">Chat with us on WhatsApp</span>
         </span>
       </button>
-      <button type="button" data-help-action="report" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-amber-50 dark:text-slate-200 dark:hover:bg-amber-950/40">
-        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </span>
-        <span class="flex flex-col items-start">
-          <span class="font-semibold">Report a Problem</span>
-          <span class="text-xs font-normal text-slate-500 dark:text-slate-400">Send feedback to the team</span>
-        </span>
-      </button>
     `;
 
     overlay.appendChild(dropdown);
@@ -1604,16 +1489,6 @@
     dropdown.querySelector('[data-help-action="whatsapp"]').addEventListener('click', () => {
       overlay.remove();
       window.open(SUPPORT_LINK, '_blank', 'noopener,noreferrer');
-    });
-
-    // Report a Problem action
-    dropdown.querySelector('[data-help-action="report"]').addEventListener('click', () => {
-      overlay.remove();
-      // Open the Sentry Feedback dialog directly. We intentionally do NOT
-      // pass the trigger button: the dropdown is removed from the DOM before
-      // the async SDK finishes loading, so attachTo() (which waits for the
-      // *next* click) would never fire. openDialog() opens it immediately.
-      openSentryFeedback();
     });
 
     // Close on click outside of the overlay

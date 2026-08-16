@@ -286,6 +286,15 @@ html.dark .floating-footer-card {
   body {
     padding-bottom: 6.5rem;
   }
+
+  /* Footer Help dropdown: open to the RIGHT of the lower Help button and
+     never extend past the right edge of the viewport on small screens.
+     Desktop/tablet positioning (right-aligned) is unchanged. */
+  .help-dropdown-footer {
+    right: auto !important;
+    left: max(8px, min(calc(100vw - 272px), 8px + var(--help-anchor-right, 0px))) !important;
+    max-width: calc(100vw - 16px);
+  }
 }
 
 /* Back-to-top button */
