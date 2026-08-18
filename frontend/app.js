@@ -1353,6 +1353,10 @@
     const host = document.getElementById('app-navbar');
     if (!host) return;
 
+    // Close any open help dropdown and purge a legacy stuck overlay so it can
+    // never block clicks (e.g. on the admin Refresh/Reset buttons).
+    removeHelpDropdown();
+
     const user = getUser();
     const initialTheme = getThemePreference();
     document.documentElement.classList.toggle('dark', initialTheme === 'dark');
@@ -1426,23 +1430,15 @@
   };
 
   const showHelpDropdown = (anchor, direction = 'down') => {
-    // Remove existing dropdown if any
-    const existing = document.getElementById('help-dropdown-overlay');
-    if (existing) existing.remove();
-
-    const overlay = document.createElement('div');
-    overlay.id = 'help-dropdown-overlay';
-    overlay.className = 'fixed inset-0 z-[9999]';
-    overlay.style.backgroundColor = 'transparent';
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) overlay.remove();
-    });
-
-    const anchorRect = anchor.getBoundingClientRect();
+    // Remove any existing dropdown to avoid stacking.
+    removeHelpDropdown();
 
     const dropdown = document.createElement('div');
-    dropdown.className = 'absolute z-[10000] w-64 rounded-xl border border-slate-200/70 bg-white p-1.5 shadow-xl dark:border-slate-700/60 dark:bg-slate-900';
+    dropdown.id = 'shhub-help-dropdown';
+    dropdown.className = 'shhub-help-dropdown absolute z-[10000] w-64 rounded-xl border border-slate-200/70 bg-white p-1.5 shadow-xl dark:border-slate-700/60 dark:bg-slate-900';
     dropdown.style.position = 'fixed';
+
+    const anchorRect = anchor.getBoundingClientRect();
 
     if (direction === 'up') {
       // Lower navigation (footer) is pinned to the bottom, so the dropdown opens upward.
@@ -1482,19 +1478,53 @@
       </button>
     `;
 
-    overlay.appendChild(dropdown);
-    document.body.appendChild(overlay);
+    document.body.appendChild(dropdown);
 
     // WhatsApp action
     dropdown.querySelector('[data-help-action="whatsapp"]').addEventListener('click', () => {
-      overlay.remove();
+      removeHelpDropdown();
       window.open(SUPPORT_LINK, '_blank', 'noopener,noreferrer');
     });
 
-    // Close on click outside of the overlay
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) overlay.remove();
-    });
+    // Close when clicking anywhere outside the dropdown (capture phase so the
+    // check runs before the target's own handlers, e.g. the Refresh button).
+    setTimeout(() => {
+      document.addEventListener('click', handleHelpOutsideClick, { capture: true });
+    }, 0);
+
+    // Close on Escape.
+    document.addEventListener('keydown', handleHelpEscape);
+
+    // Close on window blur (e.g. user switches tabs) to avoid a stuck open menu.
+    window.addEventListener('blur', handleHelpBlur);
+  };
+
+  const removeHelpDropdown = () => {
+    const existing = document.getElementById('shhub-help-dropdown');
+    if (existing) existing.remove();
+    // Legacy cleanup: purge any full-screen transparent overlay left behind by
+    // the old implementation. This invisible overlay blocked all page clicks.
+    const legacyOverlay = document.getElementById('help-dropdown-overlay');
+    if (legacyOverlay) legacyOverlay.remove();
+    document.removeEventListener('click', handleHelpOutsideClick, { capture: true });
+    document.removeEventListener('keydown', handleHelpEscape);
+    window.removeEventListener('blur', handleHelpBlur);
+  };
+
+  const handleHelpOutsideClick = (event) => {
+    const dropdown = document.getElementById('shhub-help-dropdown');
+    if (!dropdown) return;
+    if (dropdown.contains(event.target)) return;
+    removeHelpDropdown();
+  };
+
+  const handleHelpEscape = (event) => {
+    if (event.key !== 'Escape') return;
+    removeHelpDropdown();
+  };
+
+  const handleHelpBlur = () => {
+    removeHelpDropdown();
   };
 
   const renderFooter = () => {
@@ -1665,6 +1695,9 @@
 
   const init = () => {
     if (document.body?.dataset?.requiresAuth === 'true') requireAuth();
+    // Defensive cleanup: remove any leftover help dropdown/legacy overlay from
+    // a previous session that could otherwise block all page clicks.
+    removeHelpDropdown();
     const activeUser = getUser();
     if (activeUser) setUser(activeUser);
     renderNavbar();

@@ -315,12 +315,64 @@
                 window.SHHub?.refreshIcons?.();
             };
 
-            document.getElementById('refresh-admin').addEventListener('click', loadAdminData);
+            const refreshBtn = document.getElementById('refresh-admin');
+            const resetBtn = document.getElementById('reset-local-data');
+            const refreshBtnHtml = refreshBtn.innerHTML;
+            const resetBtnHtml = resetBtn.innerHTML;
 
-            document.getElementById('reset-local-data').addEventListener('click', async () => {
-                if (!confirm('Reset local demo services, users, and reviews?')) return;
-                window.SHHub?.resetLocalDemoData?.();
-                await loadAdminData();
+            const runWithLoading = (button, originalHtml, fn) => async () => {
+                const originalDisabled = button.disabled;
+                button.disabled = true;
+                button.innerHTML = '<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>';
+                try {
+                    await fn();
+                } finally {
+                    button.disabled = originalDisabled;
+                    button.innerHTML = originalHtml;
+                    window.SHHub?.refreshIcons?.();
+                }
+            };
+
+            refreshBtn.addEventListener('click', runWithLoading(refreshBtn, refreshBtnHtml, async () => {
+                try {
+                    await loadAdminData();
+                    window.SHHub?.showToast?.('Admin data refreshed.', 'success');
+                } catch (error) {
+                    window.SHHub?.logDevError?.('Admin refresh', error);
+                    window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to refresh admin data.'), 'error');
+                }
+            }));
+
+            // Two-step confirmation instead of native confirm() so the reset works
+            // even in contexts where confirm() is blocked (e.g. embedded iframes).
+            let resetArmed = false;
+            let resetArmedTimer = null;
+            resetBtn.addEventListener('click', () => {
+                if (!resetArmed) {
+                    resetArmed = true;
+                    resetBtn.innerHTML = '<i data-lucide="trash-2" class="h-4 w-4"></i> Confirm reset?';
+                    window.SHHub?.refreshIcons?.();
+                    clearTimeout(resetArmedTimer);
+                    resetArmedTimer = setTimeout(() => {
+                        resetArmed = false;
+                        resetBtn.innerHTML = resetBtnHtml;
+                        window.SHHub?.refreshIcons?.();
+                    }, 4000);
+                    return;
+                }
+
+                clearTimeout(resetArmedTimer);
+                resetArmed = false;
+                runWithLoading(resetBtn, resetBtnHtml, async () => {
+                    try {
+                        window.SHHub?.resetLocalDemoData?.();
+                        await loadAdminData();
+                        window.SHHub?.showToast?.('Local data reset.', 'success');
+                    } catch (error) {
+                        window.SHHub?.logDevError?.('Admin reset local data', error);
+                        window.SHHub?.showToast?.(window.SHHub?.getUserFriendlyErrorMessage?.(error, 'Failed to reset local data.'), 'error');
+                    }
+                })();
             });
 
             usersBody.addEventListener('click', async (event) => {
