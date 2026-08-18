@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="assets/favicons/favicon.ico">
     <title>Create Account | Student Hustle Hub</title>
-    <script defer src="https://accounts.google.com/gsi/client"></script>
     <meta name="description" content="Join Student Hustle Hub free — create a student account to offer tutoring, design, programming, and other campus services or find trusted student providers in Kenya.">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#0F766E">
@@ -103,14 +102,6 @@
 
                 <div id="form-error" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"></div>
 
-                <div class="flex items-center gap-3 py-1">
-                    <div class="h-px flex-1 bg-slate-200/80 dark:bg-slate-700/70"></div>
-                    <span class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">or</span>
-                    <div class="h-px flex-1 bg-slate-200/80 dark:bg-slate-700/70"></div>
-                </div>
-
-                <div id="google-signup-button" class="flex w-full justify-center"></div>
-
                 <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
                     <i data-lucide="sparkles" class="h-4 w-4"></i>
                     Create account
@@ -133,37 +124,9 @@
             const form = document.getElementById('register-form');
             const errorEl = document.getElementById('form-error');
             const modeNoteEl = document.getElementById('auth-mode-note');
-            const googleButtonHost = document.getElementById('google-signup-button');
-            const pendingGoogleCredential = sessionStorage.getItem('shub_pending_google_credential') || '';
-            const decodeJwtPayload = (token) => {
-                try {
-                    const parts = String(token).split('.');
-                    if (parts.length < 2) return null;
-                    const payload = parts[1];
-                    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-                    return JSON.parse(decodeURIComponent(escape(json)));
-                } catch (e) {
-                    try { return JSON.parse(atob(parts[1])); } catch { return null; }
-                }
-            };
-
-            // If redirected from login with a Google ID token, prefill name and email
-            if (pendingGoogleCredential) {
-                const info = decodeJwtPayload(pendingGoogleCredential);
-                if (info) {
-                    const nameEl = document.getElementById('name');
-                    const emailEl = document.getElementById('email');
-                    if (nameEl && info.name) nameEl.value = info.name;
-                    if (emailEl && info.email) {
-                        emailEl.value = info.email;
-                        emailEl.readOnly = true;
-                    }
-                }
-            }
             const isApiMode = window.SHHub?.isApiMode?.() === true;
-            const googleClientId = window.SHHub?.getGoogleClientId?.() || '';
             if (modeNoteEl && isApiMode) {
-                modeNoteEl.innerText = 'Connected mode: account data syncs securely to server.';
+                modeNoteEl.innerText = '';
             }
 
             // Password strength indicator
@@ -220,81 +183,9 @@
                     || message.includes('aborterror');
             };
 
-            const renderGoogleButton = () => {
-                if (!googleButtonHost || !googleClientId || !window.google?.accounts?.id || !window.SHHub?.apiGoogleAuth) {
-                    if (googleButtonHost) {
-                        googleButtonHost.innerHTML = '';
-                    }
-                    return;
-                }
-
-                const availableWidth = googleButtonHost.parentElement?.clientWidth || googleButtonHost.clientWidth || window.innerWidth;
-                const buttonWidth = Math.max(220, Math.min(360, Math.floor(availableWidth)));
-                const buttonSize = buttonWidth < 300 ? 'medium' : 'large';
-
-                window.google.accounts.id.initialize({
-                    client_id: googleClientId,
-                    callback: async (response) => {
-                        errorEl.classList.add('hidden');
-
-                        const name = document.getElementById('name').value.trim();
-                        const university = document.getElementById('university').value.trim();
-                        const course = document.getElementById('course').value.trim();
-
-                        try {
-                            await window.SHHub.apiGoogleAuth({
-                                credential: response.credential,
-                                allowCreate: true,
-                                name,
-                                university,
-                                course,
-                            });
-                            window.location.href = 'dashboard.html';
-                        } catch (error) {
-                            showError(error?.message || 'Google sign-up failed.');
-                        }
-                    },
-                });
-
-                googleButtonHost.innerHTML = '';
-                window.google.accounts.id.renderButton(googleButtonHost, {
-                    theme: 'outline',
-                    size: buttonSize,
-                    text: 'signup_with',
-                    shape: 'pill',
-                    width: buttonWidth,
-                });
-            };
-
-            renderGoogleButton();
-            window.addEventListener('resize', renderGoogleButton);
-
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 errorEl.classList.add('hidden');
-
-                // If we have a pending Google credential, use the /auth/google flow to create the account
-                const googleCred = sessionStorage.getItem('shub_pending_google_credential');
-                if (googleCred) {
-                    const name = document.getElementById('name').value.trim();
-                    const university = document.getElementById('university').value.trim();
-                    const course = document.getElementById('course').value.trim();
-                    try {
-                        await window.SHHub.apiGoogleAuth({
-                            credential: googleCred,
-                            allowCreate: true,
-                            name,
-                            university,
-                            course,
-                        });
-                        sessionStorage.removeItem('shub_pending_google_credential');
-                        window.location.href = 'dashboard.html';
-                        return;
-                    } catch (err) {
-                        showError(err?.message || 'Google sign-up failed.');
-                        return;
-                    }
-                }
 
                 const name = document.getElementById('name').value.trim();
                 const email = document.getElementById('email').value.trim();
