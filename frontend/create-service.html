@@ -150,7 +150,7 @@
             const isApiMode = window.SHHub?.isApiMode?.() === true;
 
             if (modeNoteEl && isApiMode) {
-                modeNoteEl.innerText = 'Connected mode: your listing syncs to the server.';
+                modeNoteEl.innerText = '';
             }
 
             const showError = (message) => {

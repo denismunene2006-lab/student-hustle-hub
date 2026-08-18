@@ -130,7 +130,7 @@
             const isApiMode = window.SHHub?.isApiMode?.() === true;
             const googleClientId = window.SHHub?.getGoogleClientId?.() || '';
             if (modeNoteEl && isApiMode) {
-                modeNoteEl.innerText = 'Connected mode: secure server login is active.';
+                modeNoteEl.innerText = '';
             }
 
             const showError = (message, showCreateHint = false) => {

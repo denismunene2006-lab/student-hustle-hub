@@ -151,7 +151,7 @@
             contentEl.classList.remove('hidden');
             const isApiMode = window.SHHub?.isApiMode?.() === true;
             document.getElementById('admin-mode-note').innerText = isApiMode
-                ? 'Connected mode enabled: live platform data is active.'
+                ? ''
                 : 'Demo mode: analytics and controls are using local browser data.';
 
             const usersBody = document.getElementById('admin-users-body');
