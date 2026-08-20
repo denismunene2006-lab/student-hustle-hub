@@ -430,12 +430,24 @@ https://student-hustle-hub.vercel.app/sitemap.xml
 2. Set **Root Directory** to `backend`
 3. **Build command:** `npm install`
 4. **Start command:** `npm start`
-5. Add environment variables:
-   - `MONGO_URI` — your MongoDB connection string
-   - `JWT_SECRET` — a strong random string
-   - `ADMIN_EMAILS` — comma-separated admin emails
-   - `GOOGLE_CLIENT_ID` — from Google Cloud Console
+5. Add environment variables (see table below for exactly where each value comes from).
 6. Deploy. Free services may spin down after ~15 min of inactivity.
+
+> **Important:** The backend now **fails fast at startup** if `GOOGLE_CLIENT_ID` is missing in production. If the deploy fails with `GOOGLE_CLIENT_ID is required for Google Sign-In`, add the variable and redeploy.
+
+##### Required Render Environment Variables
+
+| Variable | Required | Where the value comes from |
+| -------- | -------- | -------------------------- |
+| `MONGO_URI` | Yes | Your MongoDB Atlas connection string (Atlas → Database → Connect → Drivers). Must match the one in `backend/.env`. |
+| `JWT_SECRET` | Yes | A random string **at least 32 characters**. Generate one with `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`. |
+| `GOOGLE_CLIENT_ID` | Yes | Google Cloud Console → APIs & Services → Credentials → your OAuth 2.0 Client ID (Web application). Must be **exactly the same** as `window.SHHub_GOOGLE_CLIENT_ID` in `frontend/config.js`. |
+| `ADMIN_EMAILS` | Yes | Comma-separated email addresses that should be admins (e.g. `admin1@example.com,admin2@example.com`). |
+| `ALLOWED_ORIGINS` | Yes | The frontend origin(s), comma-separated, e.g. `https://student-hustle-hub.vercel.app`. CORS fails closed in production if this is empty. |
+| `NODE_ENV` | Yes | `production` (already set in `render.yaml`). |
+| `SENTRY_DSN` | No | Sentry → Settings → Projects → your project → Client Keys (DSN). |
+| `SENTRY_TRACES_SAMPLE_RATE` | No | e.g. `0.1` for 10% tracing in production. |
+| `PORT` | No | Render sets this automatically. |
 
 #### Frontend — Vercel
 
