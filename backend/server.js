@@ -34,6 +34,13 @@ const validateEnv = () => {
     errors.push('JWT_SECRET must be at least 32 characters long');
   }
 
+  // Google Sign-In requires a valid OAuth 2.0 Client ID. Without it the
+  // /api/auth/google endpoint throws a 500 at runtime. Fail fast in
+  // production so the misconfiguration is caught at deploy time instead.
+  if (process.env.NODE_ENV === 'production' && !String(process.env.GOOGLE_CLIENT_ID ?? '').trim()) {
+    errors.push('GOOGLE_CLIENT_ID is required for Google Sign-In');
+  }
+
   if (errors.length > 0) {
     console.error('❌ Environment validation failed:');
     errors.forEach((error) => console.error(`  - ${error}`));
@@ -47,6 +54,15 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 const app = express();
+
+// Render's load balancer terminates TLS and forwards requests with an
+// X-Forwarded-For header. express-rate-limit v7 throws
+// ERR_ERL_UNEXPECTED_X_FORWARDED_FOR when it sees that header unless
+// Express is told to trust the proxy. Render sits behind exactly one
+// proxy hop, so 'trust proxy' is set to 1. This is the standard, secure
+// configuration for Render and does NOT weaken rate limiting — it simply
+// lets the rate limiter read the real client IP from X-Forwarded-For.
+app.set('trust proxy', 1);
 
 const normalizeOrigin = (value) => String(value ?? '').trim().replace(/\/+$/, '');
 const buildAllowedOrigins = () => {
