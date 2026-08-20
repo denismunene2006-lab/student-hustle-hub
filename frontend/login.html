@@ -247,6 +247,7 @@
                     } else {
                         throw new Error('Cannot login: API connection not configured.');
                     }
+                    window.SHHub?.showToast?.('Login successful!', 'success');
                     window.location.href = 'dashboard.html';
                 } catch (error) {
                     submitBtn.disabled = false;

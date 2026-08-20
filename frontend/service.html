@@ -167,7 +167,7 @@
                     <textarea id="review-comment" rows="3" required class="mt-1 w-full rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none ring-primary/30 placeholder:text-slate-400 focus:border-primary/60 focus:ring-4 dark:border-slate-700/60 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-400" placeholder="Share your experience with this student..."></textarea>
                 </div>
                 <div id="review-error" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200"></div>
-                <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
+                <button type="submit" id="review-submit-btn" class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:brightness-95">
                     <i data-lucide="star" class="h-4 w-4"></i>
                     Submit review
                 </button>
@@ -470,6 +470,8 @@
                 }).join('');
             };
 
+            const reviewSubmitBtn = document.getElementById('review-submit-btn');
+
             reviewForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 clearReviewError();
@@ -488,6 +490,11 @@
                     rating,
                     comment,
                 };
+
+                // Show loading state on the submit button (spinner + disabled)
+                const originalHtml = reviewSubmitBtn.innerHTML;
+                reviewSubmitBtn.disabled = true;
+                reviewSubmitBtn.innerHTML = '<span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span> Submitting...';
 
                 try {
                     if (isApiMode && window.SHHub?.apiCreateReview) {
@@ -509,8 +516,12 @@
                     document.getElementById('review-comment').value = '';
                     document.getElementById('review-rating').value = '5';
                     await loadReviews();
+                    window.SHHub?.showToast?.('Review submitted successfully!', 'success');
                 } catch (error) {
                     showReviewError(error?.message || 'Failed to submit review.');
+                } finally {
+                    reviewSubmitBtn.disabled = false;
+                    reviewSubmitBtn.innerHTML = originalHtml;
                 }
             });
 
