@@ -205,6 +205,7 @@
 
                             // Otherwise attempt normal login (backend will handle matching/linking)
                             await window.SHHub.apiGoogleAuth({ credential: response.credential, allowCreate: false });
+                            window.SHHub?.showToastAfterRedirect?.('Login successful!', 'success');
                             window.location.href = 'dashboard.html';
                         } catch (error) {
                             showError(error?.message || 'Google sign-in failed.');
@@ -247,7 +248,7 @@
                     } else {
                         throw new Error('Cannot login: API connection not configured.');
                     }
-                    window.SHHub?.showToast?.('Login successful!', 'success');
+                    window.SHHub?.showToastAfterRedirect?.('Login successful!', 'success');
                     window.location.href = 'dashboard.html';
                 } catch (error) {
                     submitBtn.disabled = false;

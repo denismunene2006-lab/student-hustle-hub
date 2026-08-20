@@ -12,6 +12,7 @@
   const API_REQUEST_TIMEOUT_MS = 8000;
   const PUBLIC_API_CACHE_PREFIX = 'shhub_public_api_cache:';
   const PUBLIC_API_CACHE_TTL_MS = 45 * 1000;
+  const PENDING_TOAST_KEY = 'shhub_pending_toast';
   const ADMIN_EMAILS = [];
   const apiPendingRequests = new Map();
 
@@ -1262,6 +1263,33 @@
     }, 4000);
   };
 
+  // Store a toast message so it can be shown after a page navigation/redirect.
+  const showToastAfterRedirect = (message, type = 'neutral') => {
+    try {
+      sessionStorage.setItem(PENDING_TOAST_KEY, JSON.stringify({ message: String(message ?? ''), type }));
+    } catch {
+      // If sessionStorage is unavailable, fall back to showing the toast immediately.
+      showToast(message, type);
+    }
+  };
+
+  // Display any pending toast that was stored before a page navigation.
+  const showPendingToast = () => {
+    let pending = null;
+    try {
+      const raw = sessionStorage.getItem(PENDING_TOAST_KEY);
+      if (raw) {
+        pending = safeJsonParse(raw);
+        sessionStorage.removeItem(PENDING_TOAST_KEY);
+      }
+    } catch {
+      // Ignore storage errors; no pending toast will be shown.
+    }
+    if (pending?.message) {
+      showToast(pending.message, pending.type === 'success' || pending.type === 'error' ? pending.type : 'neutral');
+    }
+  };
+
   const requireAuth = () => {
     if (!getUser()) window.location.replace('login.html');
   };
@@ -1704,6 +1732,8 @@
     renderFooter();
     renderBackToTop();
     registerServiceWorker();
+    // Show any toast that was queued before a page navigation (e.g. after login).
+    showPendingToast();
     // Refresh icons with retry mechanism for better reliability
     refreshIcons();
     setTimeout(() => {
@@ -1725,6 +1755,7 @@
     toggleTheme,
     refreshIcons,
     showToast,
+    showToastAfterRedirect,
     getAllServices,
     getServiceById,
     createService,
