@@ -92,6 +92,7 @@
 - **Loading state safety** — all async operations have guaranteed loading state cleanup, preventing infinite spinners
 - **Structured logging** — errors are logged with context prefixes for easy developer debugging
 - **Toast notifications** — consistent success/error/info toasts replace disruptive `alert()` dialogs
+- **Cross-page toast persistence** — success messages (e.g. "Login successful!") survive page redirects via `sessionStorage`, so users see the confirmation on the destination page (e.g. dashboard) after both email/password and Google sign-in
 
 ---
 
@@ -259,6 +260,8 @@ The application includes a comprehensive error handling system designed for reli
 | `logDevError(context, error)` | Logs structured errors with context for developer debugging |
 | `isNetworkError(error)` | Detects network-related failures (timeout, fetch failure, CORS, etc.) |
 | `withLoading(button, asyncFn)` | Wraps async operations with guaranteed loading state cleanup |
+| `showToastAfterRedirect(message, type)` | Stores a toast in `sessionStorage` so it displays after a page navigation/redirect |
+| `showPendingToast()` | Reads and displays any stored toast on the next page load, then clears it |
 
 ### Error Message Mapping
 
