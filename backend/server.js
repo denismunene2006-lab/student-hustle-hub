@@ -136,6 +136,12 @@ app.get('/', (req, res) => {
   res.send('Backend is running');
 });
 
+// Lightweight liveness probe for uptime monitors (UptimeRobot) and the
+// frontend settings "Test connection" button. No DB or auth involved.
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // Health check route
 app.get('/api/health', (req, res) => {
   const dbConnected = mongoose.connection.readyState === 1;
